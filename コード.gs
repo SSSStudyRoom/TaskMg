@@ -27,18 +27,18 @@ function doGet(e) {
   const webappUrl = prop_('WEBAPP_URL');
 
   if (page === 'review') {
-    const t = HtmlService.createTemplateFromFile('承認画面');
+    const t = HtmlService.createTemplateFromFile('review');
     t.reportId = (e.parameter.id || '');
     t.webappUrl = webappUrl;
     return t.evaluate().setTitle('業務報告の承認').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   if (page === 'manual') {
-    const t = HtmlService.createTemplateFromFile('マニュアル');
+    const t = HtmlService.createTemplateFromFile('manual');
     t.docId = MANUAL_DOC_ID; t.docUrl = 'https://docs.google.com/document/d/' + MANUAL_DOC_ID + '/edit'; t.webappUrl = webappUrl;
     return t.evaluate().setTitle('自習室マニュアル').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   if (page === 'dashboard') {
-    const t = HtmlService.createTemplateFromFile('管理ダッシュボード'); t.webappUrl = webappUrl;
+    const t = HtmlService.createTemplateFromFile('dashboard'); t.webappUrl = webappUrl;
     return t.evaluate().setTitle('管理ダッシュボード').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   if (page === 'visits') {
@@ -46,21 +46,21 @@ function doGet(e) {
     return t.evaluate().setTitle('生徒来室状況').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   if (page === 'notice') {
-    const t = HtmlService.createTemplateFromFile('お知らせ'); t.webappUrl = webappUrl;
+    const t = HtmlService.createTemplateFromFile('notice'); t.webappUrl = webappUrl;
     return t.evaluate().setTitle('お知らせ・引き継ぎ').addMetaTag('viewport', 'width=device-width, initial-scale=1');
     
   }
   if (page === 'quiz') {
-    const t = HtmlService.createTemplateFromFile('小テスト管理');
+    const t = HtmlService.createTemplateFromFile('quiz');
     t.webappUrl = webappUrl;
     return t.evaluate().setTitle('小テスト管理').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   if (page === 'help') {
-    const t = HtmlService.createTemplateFromFile('質問受付');
+    const t = HtmlService.createTemplateFromFile('help');
     t.webappUrl = webappUrl;
     return t.evaluate().setTitle('質問受付フォーム').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
-  const t = HtmlService.createTemplateFromFile('スタッフ画面'); t.webappUrl = webappUrl;
+  const t = HtmlService.createTemplateFromFile('index'); t.webappUrl = webappUrl;
   return t.evaluate().setTitle('業務報告').addMetaTag('viewport', 'width=device-width, initial-scale=1');
   
 }
