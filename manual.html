@@ -1,71 +1,42 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<base target="_top">
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マニュアル</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-
-  // Step 1 で控えたGASのURLをここに貼る
-const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
-
-// GASと通信するための魔法のラッパー関数
-const api = {
-  call: function(action, payload) {
-    payload = payload || {};
-    return fetch(API_URL, {
-      method: 'POST',
-      // ★CORSエラー回避のため、あえて text/plain で送るのが鉄則！
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: action, payload: payload })
-    })
-    .then(function(res) { return res.json(); })
-    .catch(function(err) {
-      console.error('API Error:', err);
-      throw err;
-    });
-  }
-};
   :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
   body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
+  ::selection{background:var(--cyan);color:#04121a}
   .wrap{max-width:760px;margin:0 auto;padding:0 14px 60px;position:relative;z-index:1}
   header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14); border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
-  header::before{content:"STUDY ROOM // FIELD MANUAL";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--cyan);opacity:.8;margin-bottom:4px}
-  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700;color:#eafff8; text-shadow:0 0 8px rgba(0,234,255,.7)}
+  header::before{content:"STUDY ROOM // FIELD MANUAL";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--cyan); opacity:.8;margin-bottom:4px}
+  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700; color:#eafff8;text-shadow:0 0 8px rgba(0,234,255,.7)}
   .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
   .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--pink);text-decoration:none;border:1px solid var(--pinkline);padding:5px 10px;cursor:pointer;}
   .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
   .openbtn{display:inline-block;font-family:var(--disp);font-weight:700;color:#04121a;background:linear-gradient(90deg,var(--cyan),#22b6ff);padding:12px 18px;text-decoration:none;font-size:14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
   .docframe{width:100%;height:78vh;min-height:520px;border:1px solid var(--cyan);margin-top:14px;background:#fff;}
-  .muted{color:var(--sub);font-size:13px;font-family:var(--mono);}
 </style>
 </head>
 <body>
 <header>
   <div class="nav">
-    <a class="navbtn" id="formLink" target="_top">🏠 業務報告</a>
-    <a class="navbtn" id="quizLink" target="_top">📝 小テスト</a>
-    <a class="navbtn" id="dashboardLink" target="_top">📊 ダッシュボード</a>
-    <a class="navbtn" id="visitsLink" target="_top">👨‍🏫 来室状況</a>
+    <a class="navbtn" href="index.html">🏠 業務報告</a>
+    <a class="navbtn" href="quiz.html">📝 小テスト</a>
+    <a class="navbtn" href="dashboard.html">📊 ダッシュボード</a>
   </div>
   <h1>自習室マニュアル</h1>
 </header>
 <div class="wrap">
   <div class="card">
     <p style="margin:0 0 12px">全体版のマニュアルです。スマホで見づらいときは下のボタンで開いてください。</p>
-    <a class="openbtn" href="<?= docUrl ?>" target="_blank" rel="noopener">📄 Googleドキュメントで開く</a>
-    <iframe class="docframe" src="https://docs.google.com/document/d/<?= docId ?>/preview" loading="lazy"></iframe>
+    <a class="openbtn" href="https://docs.google.com/document/d/1kRsrEEVzjQqzIYaEUJE34w4zal_CzPHINWbdofGG9sk/edit" target="_blank" rel="noopener">📄 Googleドキュメントで開く</a>
+    <iframe class="docframe" src="https://docs.google.com/document/d/1kRsrEEVzjQqzIYaEUJE34w4zal_CzPHINWbdofGG9sk/preview" loading="lazy"></iframe>
   </div>
 </div>
-<script>
-  var WEBAPP_URL = '<?= webappUrl ?>';
-  if (!WEBAPP_URL || WEBAPP_URL.indexOf('<' + '?') >= 0) { WEBAPP_URL = window.location.href.split('?')[0]; }
-  var base = WEBAPP_URL || '';
-  var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + (page ? '?page=' + page : '')) : '#'; };
-  setHref('formLink', ''); setHref('quizLink', 'quiz'); setHref('dashboardLink', 'dashboard'); setHref('visitsLink', 'visits');
-</script>
-<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>

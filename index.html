@@ -1,31 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>業務報告</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  // Step 1 で控えたGASのURLをここに貼る
-const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
-
-// GASと通信するための魔法のラッパー関数
-const api = {
-  call: function(action, payload) {
-    payload = payload || {};
-    return fetch(API_URL, {
-      method: 'POST',
-      // ★CORSエラー回避のため、あえて text/plain で送るのが鉄則！
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: action, payload: payload })
-    })
-    .then(function(res) { return res.json(); })
-    .catch(function(err) {
-      console.error('API Error:', err);
-      throw err;
-    });
-  }
-};
   :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
@@ -60,7 +40,7 @@ const api = {
   
   .cat{font-family:var(--mono);font-size:12px;color:var(--cyan);margin:20px 2px 4px;letter-spacing:.18em;text-transform:uppercase;text-shadow:0 0 8px rgba(0,234,255,.5)}
   .cat.bonus{color:var(--amber);text-shadow:0 0 8px rgba(255,210,61,.5)}
-  .cat::before{content:"\25AE  "}
+  .cat::before{content:" AE  "}
   
   .task{position:relative;background:var(--panel2);border:1px solid var(--line);border-left:3px solid rgba(0,234,255,.35);padding:12px;margin-top:8px;}
   .task.req{border-left-color:var(--pink)}
@@ -100,7 +80,7 @@ const api = {
   .clockstat{margin-top:10px;font-family:var(--mono);font-size:13px;padding:9px 11px;border:1px solid var(--line);background:rgba(4,8,18,.7)}
   .clockstat.ontime{color:var(--acid);border-color:rgba(182,255,58,.55);}
   .clockstat.late{color:#ffd0dd;border-color:var(--danger);}
-  /* キュー（質問待ち）用のCSS */
+
   .queue-box { border: 2px dashed var(--danger); background: rgba(255,59,107,.1); padding: 12px; margin-top: 16px; border-radius: 4px; box-shadow: 0 0 16px rgba(255,59,107,.4); }
   .queue-title { color: var(--danger); font-family: var(--mono); font-weight: bold; font-size: 15px; margin-bottom: 8px; animation: flash 1.5s infinite; }
   @keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -113,11 +93,11 @@ const api = {
 <body>
 <header>
   <div class="nav">
-    <a class="navbtn" id="noticeLink" target="_top">📢 お知らせ</a>
-    <a class="navbtn" id="quizLink" target="_top">📝 小テスト</a>
-    <a class="navbtn" id="manualLink" target="_top">📖 マニュアル</a>
-    <a class="navbtn" id="dashboardLink" target="_top">📊 管理ダッシュボード</a>
-    <a class="navbtn" id="visitsLink" target="_top">👨‍🏫 生徒来室状況</a>
+    <a class="navbtn" href="notice.html">📢 お知らせ</a>
+    <a class="navbtn" href="quiz.html">📝 小テスト</a>
+    <a class="navbtn" href="manual.html">📖 マニュアル</a>
+    <a class="navbtn" href="dashboard.html">📊 管理ダッシュボード</a>
+    <a class="navbtn" href="visits.html">👨‍🏫 生徒来室状況</a>
   </div>
   <h1>自習室 業務報告</h1>
   <div class="date" id="dateLabel">読み込み中…</div>
@@ -132,21 +112,32 @@ const api = {
 <div class="toast" id="toast"></div>
 
 <script>
-var WEBAPP_URL = '<?= webappUrl ?>';
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
+const api = {
+  call: function(action, payload) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: action, payload: payload || {} })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function(err) { console.error('API Error:', err); throw err; });
+  }
+};
+
+
 var ENV_RANGE = { tempMin:23, tempMax:27, humidMin:60, humidMax:80 };
 var STATE = { shift:'朝', tasks:[], staff:null, staffList:[], temp:'', humid:'', noticePhoto:null };
 
 window.onload = function(){
-  var base = WEBAPP_URL || '';
-  var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + '?page=' + page) : '#'; };
-  setHref('noticeLink', 'notice'); setHref('quizLink', 'quiz'); setHref('manualLink', 'manual'); setHref('dashboardLink', 'dashboard'); setHref('visitsLink', 'visits');
-  google.script.run.withSuccessHandler(onInit).getInitialData();
+  api.call('getInitialData').then(onInit).catch(function(e){showToast("Error: "+e, true)});
 };
 
 function onInit(d){
   document.getElementById('dateLabel').textContent = d.today;
   STATE.shift = d.shift; STATE.staff = d.staff; STATE.staffList = d.staffList || []; STATE.tasks = d.tasks.map(prep);
-  render(d);
+  render();
 }
 
 function prep(t){ t.done=false; t.memo=''; t.photo=null; return t; }
@@ -174,7 +165,7 @@ function render(){
     + (STATE.noticePhoto ? '<div class="preview"><img src="data:'+STATE.noticePhoto.mime+';base64,'+STATE.noticePhoto.data+'"><button class="x" onclick="removeNoticePhoto()">×</button></div>' : '<label class="photobtn">📷 現場の写真を添付<input type="file" accept="image/*" capture="environment" style="display:none" onchange="onNoticePhoto(event)"></label>')
     + '</div>'
     + '<button class="submit" id="stNoticeBtn" onclick="submitStaffNotice()" style="margin-top:10px;width:100%;padding:10px;font-size:14px;background:linear-gradient(90deg,var(--pink),#ff007f);box-shadow:0 0 14px rgba(255,43,214,.3)">📢 共有事項を投稿（配信）する</button></div>';
-// 質問待ちキューのエリア
+
   html += '<div id="helpQueueArea"></div>';
   html += '<div id="taskList"></div>';
   html += '<div class="card"><div class="label">生徒の状況（欠席・気になる様子など）</div><textarea id="studentStatus" placeholder="特になければ「特になし」"></textarea></div>';
@@ -182,7 +173,7 @@ function render(){
   
   document.getElementById('app').innerHTML = html;
   document.getElementById('footer').style.display = 'block';
-  renderTasks(); refreshClockStat();
+  renderTasks(); refreshClockStat(); loadQueue();
 }
 
 function getSelectedStaff(){ var sel = document.getElementById('staffSelect'); return (sel && sel.value !== '') ? STATE.staffList[Number(sel.value)] : null; }
@@ -193,12 +184,12 @@ function onStaff(){
   if(!st) { if(alertArea) alertArea.innerHTML = ''; return; }
   if(alertArea) {
     alertArea.innerHTML = '<div style="color:var(--sub);font-size:12px;margin-top:10px;">お知らせを確認中...</div>';
-    google.script.run.withSuccessHandler(function(notices){
+    api.call('getNotices', {staffId: st.staffId}).then(function(notices){
       var unread = notices.filter(function(n){ return !n.isRead; });
       if(unread.length > 0){
-        alertArea.innerHTML = '<div class="alert-box"><b>⚠️ NEW NOTICE</b><br>未読の引き継ぎ事項が <b>' + unread.length + '件</b> あります。<br><a href="'+(WEBAPP_URL?WEBAPP_URL+'?page=notice':'#')+'" class="alert-btn" target="_top">📢 お知らせを確認する</a></div>';
+        alertArea.innerHTML = '<div class="alert-box"><b>⚠️ NEW NOTICE</b><br>未読の引き継ぎ事項が <b>' + unread.length + '件</b> あります。<br><a href="notice.html" class="alert-btn">📢 お知らせを確認する</a></div>';
       } else { alertArea.innerHTML = ''; }
-    }).getNotices(st.staffId);
+    }).catch(function(e){alertArea.innerHTML='';});
   }
 }
 
@@ -213,14 +204,14 @@ function submitStaffNotice(){
   var title = document.getElementById('stNoticeTitle').value.trim(), content = document.getElementById('stNoticeContent').value.trim();
   if(!title || !content){ showToast('タイトルと内容を入力してください', true); return; }
   var btn = document.getElementById('stNoticeBtn'); btn.disabled = true; btn.textContent = 'TRANSMITTING...';
-  google.script.run.withSuccessHandler(function(res){
+  api.call('addNotice', { author: st.name, title: title, content: content, photo: STATE.noticePhoto }).then(function(res){
     if(res.ok){ showToast('全体へ共有事項を投稿しました！'); STATE.noticePhoto=null; render(); }
     else { showToast('投稿エラー: ' + res.error, true); btn.disabled = false; btn.textContent = '📢 共有事項を投稿（配信）する'; }
-  }).addNotice({ author: st.name, title: title, content: content, photo: STATE.noticePhoto });
+  }).catch(function(err){showToast('通信エラー',true);btn.disabled=false;btn.textContent = '📢 共有事項を投稿（配信）する';});
 }
 
-function setShift(s){ if(STATE.shift===s) return; STATE.shift = s; document.getElementById('seg-朝').className = (s==='朝'?'on':''); document.getElementById('seg-夕').className = (s==='夕'?'on':''); google.script.run.withSuccessHandler(function(tasks){ STATE.tasks = tasks.map(prep); renderTasks(); }).getTasks(s); refreshClockStat(); }
-function refreshClockStat(){ var box = document.getElementById('clockStat'), st = getSelectedStaff(); if(!box) return; if(!st){ box.innerHTML=''; return; } google.script.run.withSuccessHandler(renderClockStat).getAttendanceStatus(STATE.shift, st.staffId, st.name); }
+function setShift(s){ if(STATE.shift===s) return; STATE.shift = s; document.getElementById('seg-朝').className = (s==='朝'?'on':''); document.getElementById('seg-夕').className = (s==='夕'?'on':''); api.call('getTasks', {shift: s}).then(function(tasks){ STATE.tasks = tasks.map(prep); renderTasks(); }); refreshClockStat(); }
+function refreshClockStat(){ var box = document.getElementById('clockStat'), st = getSelectedStaff(); if(!box) return; if(!st){ box.innerHTML=''; return; } api.call('getAttendanceStatus', {shift: STATE.shift, staffId: st.staffId, staffName: st.name}).then(renderClockStat); }
 function renderClockStat(rec){
   var box = document.getElementById('clockStat'), btn = document.getElementById('clockBtn'); if(!box) return;
   if(rec && rec.actual){
@@ -233,13 +224,13 @@ function renderClockStat(rec){
 function clockInTap(){
   var st = getSelectedStaff(); if(!st){ showToast('先に担当者を選択してください', true); return; }
   var btn = document.getElementById('clockBtn'); btn.disabled = true; btn.textContent = '記録中…';
-  google.script.run.withSuccessHandler(function(res){
+  api.call('clockIn', { shift:STATE.shift, staffId:st.staffId, staffName:st.name, reason:'' }).then(function(res){
     if(!res || !res.ok){ btn.disabled=false; btn.textContent='🟢 業務開始（出勤を記録）'; showToast('打刻に失敗：'+(res&&res.error||''), true); return; }
     if(res.needReason){
       var r = window.prompt('定刻を'+res.minutesLate+'分過ぎています。\n遅刻理由を入力してください（任意）',''); if(r===null) r='（未記入）';
-      google.script.run.withSuccessHandler(function(){ refreshClockStat(); }).clockIn({ shift:STATE.shift, staffId:st.staffId, staffName:st.name, reason:r });
+      api.call('clockIn', { shift:STATE.shift, staffId:st.staffId, staffName:st.name, reason:r }).then(function(){ refreshClockStat(); });
     } else { refreshClockStat(); showToast(res.late ? '遅刻として記録しました' : '出勤を記録しました', res.late); }
-  }).withFailureHandler(function(err){ btn.disabled=false; btn.textContent='🟢 業務開始（出勤を記録）'; showToast('打刻エラー：'+err, true); }).clockIn({ shift:STATE.shift, staffId:st.staffId, staffName:st.name, reason:'' });
+  }).catch(function(err){ btn.disabled=false; btn.textContent='🟢 業務開始（出勤を記録）'; showToast('打刻エラー：'+err, true); });
 }
 
 function renderTasks(){
@@ -328,67 +319,38 @@ function submit(){
   var tempEl=document.getElementById('temp'), humidEl=document.getElementById('humid');
   var payload = { shift: STATE.shift, staffId:id, staffName:name, temperature: STATE.temp || (tempEl?tempEl.value:''), humidity: STATE.humid || (humidEl?humidEl.value:''), studentStatus: document.getElementById('studentStatus').value.trim(), notes: document.getElementById('notes').value.trim(), tasks: STATE.tasks.map(function(t){ return { taskId:t.taskId, name:t.name, category:t.category, photoReq:t.photoReq, done:t.done, memo:t.memo, photo: t.photo, type: t.type }; }) };
   var btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='送信中…';
-  google.script.run.withSuccessHandler(function(res){ if(res && res.ok){ showDone(res.reportId); } else { btn.disabled=false; btn.textContent='提出する'; showToast('送信に失敗しました：'+(res&&res.error||''), true); } }).withFailureHandler(function(err){ btn.disabled=false; btn.textContent='提出する'; showToast('送信エラー：'+err, true); }).submitReport(payload);
+  api.call('submitReport', payload).then(function(res){ if(res && res.ok){ showDone(res.reportId); } else { btn.disabled=false; btn.textContent='提出する'; showToast('送信に失敗しました：'+(res&&res.error||''), true); } }).catch(function(err){ btn.disabled=false; btn.textContent='提出する'; showToast('送信エラー：'+err, true); });
 }
 
 function showDone(id){
-  document.getElementById('footer').style.display='none'; document.getElementById('app').innerHTML = '<div class="done-screen"><div class="big">✅</div><h2>提出しました</h2><p class="muted">受付番号：'+esc(id)+'</p></div>'; window.scrollTo(0,0);
+  document.getElementById('footer').style.display='none'; document.getElementById('app').innerHTML = '<div class="done-screen"><div style="font-size:50px">✅</div><h2>提出しました</h2><p class="muted">受付番号：'+esc(id)+'</p></div>'; window.scrollTo(0,0);
 }
 
 var toastTimer;
 function showToast(msg, warn){ var t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.className='toast'+(warn?' warn':''); t.style.display='block'; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.style.display='none'; }, 3200); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-// --- 質問待ちキュー監視ロジック ---
-function loadQueue() {
-  google.script.run.withSuccessHandler(renderQueue).getActiveQueue();
-}
 
+function loadQueue() { api.call('getActiveQueue').then(renderQueue); }
 function renderQueue(queue) {
-  var area = document.getElementById('helpQueueArea');
-  if(!area) return;
-  
-  if (!queue || queue.length === 0) {
-    area.innerHTML = '';
-    return;
-  }
-  
+  var area = document.getElementById('helpQueueArea'); if(!area) return;
+  if (!queue || queue.length === 0) { area.innerHTML = ''; return; }
   var html = '<div class="queue-box"><div class="queue-title">🚨 INCOMING HELP REQUEST ('+queue.length+')</div>';
-  
   queue.forEach(function(q) {
     var isDoing = (q.status === '対応中');
     html += '<div class="q-item ' + (isDoing ? 'doing' : '') + '">';
-    html += '<div><span style="font-family:var(--mono);font-size:11px;color:var(--sub)">'+esc(q.time)+'</span><br>';
-    html += '<b style="color:var(--ink)">'+esc(q.studentName)+'</b><br>';
-    html += '<span style="font-size:12px;color:var(--sub)">'+esc(q.topic)+'</span>';
+    html += '<div><span style="font-family:var(--mono);font-size:11px;color:var(--sub)">'+esc(q.time)+'</span><br><b style="color:var(--ink)">'+esc(q.studentName)+'</b><br><span style="font-size:12px;color:var(--sub)">'+esc(q.topic)+'</span>';
     if (isDoing) html += '<br><span style="font-size:10px;color:var(--cyan)">担当: '+esc(q.staff)+'</span>';
     html += '</div>';
-    
-    if (!isDoing) {
-      html += '<button class="q-btn" onclick="updateQueue(\''+q.id+'\', \'対応中\')">対応する</button>';
-    } else {
-      html += '<button class="q-btn done" onclick="updateQueue(\''+q.id+'\', \'完了\')">完了</button>';
-    }
+    if (!isDoing) { html += '<button class="q-btn" onclick="updateQueue(\''+q.id+'\', \'対応中\')">対応する</button>'; } else { html += '<button class="q-btn done" onclick="updateQueue(\''+q.id+'\', \'完了\')">完了</button>'; }
     html += '</div>';
   });
-  html += '</div>';
-  area.innerHTML = html;
+  html += '</div>'; area.innerHTML = html;
 }
-
 function updateQueue(reqId, status) {
-  var st = getSelectedStaff();
-  if(!st && status === '対応中') {
-    showToast('自分の名前(担当者)を選択してから対応してください', true);
-    return;
-  }
-  var staffName = st ? st.name : '';
-  google.script.run.withSuccessHandler(loadQueue).updateQueueStatus(reqId, status, staffName);
+  var st = getSelectedStaff(); if(!st && status === '対応中') { showToast('自分の名前を選択してから対応してください', true); return; }
+  var staffName = st ? st.name : ''; api.call('updateQueueStatus', {reqId: reqId, status: status, staffName: staffName}).then(loadQueue);
 }
-
-// 30秒ごとに自動更新してキューをチェック
-setInterval(loadQueue, 30000);
-// 初回読み込み時にも実行
-setTimeout(loadQueue, 2000);
+setInterval(loadQueue, 30000); setTimeout(loadQueue, 2000);
 </script>
-<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>
