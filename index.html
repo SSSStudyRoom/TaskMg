@@ -389,5 +389,6 @@ setInterval(loadQueue, 30000);
 // 初回読み込み時にも実行
 setTimeout(loadQueue, 2000);
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>

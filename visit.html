@@ -95,5 +95,6 @@ function render(d){
 function load(){ google.script.run.withSuccessHandler(render).getStudentsToday(); }
 load(); setInterval(load, 60000);
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>
