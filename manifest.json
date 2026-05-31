@@ -1,0 +1,15 @@
+{
+  "name": "OPS TERMINAL",
+  "short_name": "OPS TERM",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#070a14",
+  "theme_color": "#00eaff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2088/2088090.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

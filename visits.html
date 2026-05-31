@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生徒来室状況</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px);mix-blend-mode:multiply}
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px 60px;position:relative;z-index:1}
+  header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14);border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
+  header::before{content:"STUDY ROOM // VISITS";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--pink);opacity:.85;margin-bottom:4px;text-shadow:0 0 8px rgba(255,43,214,.5)}
+  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.04em;color:#eafff8; text-shadow:0 0 8px rgba(0,234,255,.7),2px 0 rgba(255,43,214,.45),-2px 0 rgba(0,234,255,.45)}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
+  .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em; color:var(--cyan);text-decoration:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;transition:.15s}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
+  h3{font-family:var(--mono);font-size:12px;margin:22px 2px 2px;color:var(--pink);letter-spacing:.16em;text-transform:uppercase;text-shadow:0 0 8px rgba(255,43,214,.5)}
+  .row{display:flex;gap:10px;align-items:center;padding:11px;margin-top:8px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid rgba(0,234,255,.35)}
+  .row.live{border-left-color:var(--acid)} .row.left{border-left-color:var(--sub);opacity:0.85}
+  .grow{flex:1;min-width:0} .nm{font-size:16px;font-weight:500;color:var(--ink)} .meta{font-family:var(--mono);font-size:12px;color:var(--sub);margin-top:2px;}
+  .highlight{color:var(--cyan);text-shadow:0 0 6px rgba(0,234,255,.4)}
+  .strategy-btn{display:inline-block;font-family:var(--disp);font-weight:700;letter-spacing:.04em;color:#04121a; background:linear-gradient(90deg,var(--cyan),#22b6ff);padding:8px 12px;text-decoration:none;font-size:12px;white-space:nowrap; clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%);flex-shrink:0}
+  .strategy-btn.disabled{background:var(--sub);color:#fff;pointer-events:none}
+  .badge{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border:1px solid var(--line); color:var(--acid);background:rgba(182,255,58,.08);margin-left:8px;vertical-align:middle}
+  .live-dot{width:8px;height:8px;background:var(--acid);border-radius:50%;display:inline-block; box-shadow:0 0 8px var(--acid);animation:pulse 2s infinite;margin-right:6px}
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.85)} }
+  .empty{color:var(--sub);font-family:var(--mono);font-size:13px;padding:14px 2px}
+  .refresh{position:fixed;bottom:20px;right:20px;background:var(--bg);color:var(--cyan);width:50px;height:50px; border-radius:50%;border:2px solid var(--cyan);font-size:22px;box-shadow:0 0 16px rgba(0,234,255,.4); cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .updated{font-family:var(--mono);font-size:11px;color:var(--sub);text-align:right;margin-top:16px}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="navbtn" href="index.html">🏠 業務報告</a>
+    <a class="navbtn" href="notice.html">📢 お知らせ</a>
+    <a class="navbtn" href="quiz.html">📝 小テスト</a>
+    <a class="navbtn" href="dashboard.html">📊 ダッシュボード</a>
+  </div>
+  <h1>自習室 来室状況</h1>
+  <div class="date" id="date">読み込み中...</div>
+</header>
+<div class="wrap" id="app"><div style="text-align:center;padding:70px;color:var(--cyan);font-family:var(--mono)">SYSTEM BOOTING...</div></div>
+<button class="refresh" onclick="load()">↻</button>
+<script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
+const api = {
+  call: function(action, payload) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: action, payload: payload || {} })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function(err) { console.error('API Error:', err); throw err; });
+  }
+};
+
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function strategyBlock(s){ if (!s) return '<span class="strategy-btn disabled">戦略未設定</span>'; if (s.match(/^https?:\/\//)) { return '<a class="strategy-btn" href="'+esc(s)+'" target="_blank">📋 OPEN STRATEGY</a>'; } return '<span style="font-size:12px;color:var(--sub)">📋 '+esc(s)+'</span>'; }
+function studentRow(s, showOut){
+  var cls = showOut ? 'row left' : 'row live';
+  var timeInfo = showOut ? 'IN '+esc(s.inTime)+' / OUT '+esc(s.outTime) : 'IN <span class="highlight">'+esc(s.inTime)+'</span>';
+  return '<div class="'+cls+'"><div class="grow"><div class="nm">'+esc(s.name)+'</div><div class="meta">ID:'+esc(s.id)+' // '+timeInfo+'</div></div>'+strategyBlock(s.strategy)+'</div>';
+}
+function render(d){
+  if (!d || !d.ok) { document.getElementById('app').innerHTML = '<div class="card"><div class="empty">ERROR: ' + esc(d&&d.error||'読み込み失敗') + '</div></div>'; return; }
+  document.getElementById('date').textContent = d.today;
+  var html = '';
+  html += '<h3><span class="live-dot"></span>ONLINE NOW <span class="badge">'+d.stillIn.length+'</span></h3><div class="card">';
+  html += d.stillIn.length === 0 ? '<div class="empty">現在、在室中の生徒はいません</div>' : d.stillIn.map(function(s){ return studentRow(s, false); }).join('');
+  html += '</div><h3>LOGGED OUT <span class="badge" style="color:var(--sub);border-color:var(--sub);background:none">'+d.leftAlready.length+'</span></h3><div class="card">';
+  html += d.leftAlready.length === 0 ? '<div class="empty">退室した生徒はまだいません</div>' : d.leftAlready.map(function(s){ return studentRow(s, true); }).join('');
+  html += '</div><div class="updated">LAST UPDATE: '+esc(d.now)+' (AUTO SYNC EVERY 1 MIN)</div>';
+  document.getElementById('app').innerHTML = html;
+}
+function load(){ api.call('getStudentsToday').then(render).catch(function(e){document.getElementById('app').innerHTML='エラー: '+e;}); }
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>

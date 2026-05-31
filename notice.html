@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>引き継ぎ・共有事項</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
+  .wrap{max-width:680px;margin:0 auto;padding:0 14px 80px;position:relative;z-index:1}
+  header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14);border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
+  header::before{content:"OPS TERMINAL // NOTICE";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--pink);opacity:.85;margin-bottom:4px}
+  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.04em;color:#eafff8; text-shadow:0 0 8px rgba(0,234,255,.7),2px 0 rgba(255,43,214,.45),-2px 0 rgba(0,234,255,.45)}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
+  .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em; color:var(--cyan);text-decoration:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
+  select{width:100%;border:1px solid var(--line);border-radius:0;padding:11px;font-size:15px;font-family:var(--jp); background:rgba(4,8,18,.85);color:var(--acid);outline:none;}
+  .notice-item{background:var(--panel2);border:1px solid var(--line);padding:14px;margin-top:12px;border-left:3px solid var(--cyan)}
+  .notice-item.unread{border-left-color:var(--pink);box-shadow:0 0 16px rgba(255,43,214,.15);background:rgba(255,43,214,.04)}
+  .notice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px}
+  .n-title{font-size:16px;font-weight:700;color:var(--ink)}
+  .n-meta{font-family:var(--mono);font-size:11px;color:var(--sub);letter-spacing:.04em;text-align:right;}
+  .n-body{font-size:14px;white-space:pre-wrap;color:var(--ink);padding:10px;background:rgba(4,8,18,.6);border:1px solid var(--line)}
+  .n-image{margin-top:10px;text-align:center;}
+  .n-image img{max-width:100%;border:1px solid var(--cyan);box-shadow:0 0 12px rgba(0,234,255,.3);}
+  .badge-unread{display:inline-block;background:var(--pink);color:#fff;font-family:var(--mono);font-size:10px; padding:2px 6px;margin-bottom:6px;letter-spacing:.1em;box-shadow:0 0 8px rgba(255,43,214,.6)}
+  .badge-read{display:inline-block;border:1px solid var(--acid);color:var(--acid);font-family:var(--mono);font-size:10px; padding:1px 5px;margin-bottom:6px;letter-spacing:.1em}
+  .btn-read{display:inline-block;margin-top:10px;width:100%;background:linear-gradient(90deg,var(--cyan),#22b6ff); color:#04121a;border:0;padding:10px;font-size:14px;font-family:var(--disp);font-weight:700;cursor:pointer;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%)}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="navbtn" href="index.html">🏠 業務報告</a>
+    <a class="navbtn" href="quiz.html">📝 小テスト</a>
+    <a class="navbtn" href="dashboard.html">📊 ダッシュボード</a>
+  </div>
+  <h1>引き継ぎ・共有事項</h1>
+</header>
+<div class="wrap" id="app"><div style="text-align:center;padding:50px;color:var(--cyan);font-family:var(--mono)">読み込み中…</div></div>
+<script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
+const api = {
+  call: function(action, payload) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: action, payload: payload || {} })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function(err) { console.error('API Error:', err); throw err; });
+  }
+};
+
+
+var STAFF_LIST = []; var CURRENT_STAFF = null;
+window.onload = function(){
+  api.call('getInitialData').then(function(res){ STAFF_LIST = res.staffList; renderSelector(); }).catch(function(e){ document.getElementById('app').innerHTML='エラー: '+e; });
+};
+function renderSelector(){
+  var opts = '<option value="">▼ あなたの名前を選択してください</option>';
+  STAFF_LIST.forEach(function(s, i){ opts += '<option value="'+i+'">'+esc(s.name)+'</option>'; });
+  document.getElementById('app').innerHTML = '<div class="card"><div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:6px">SELECT STAFF ID</div><select id="staffSelect" onchange="onStaffSelected()">'+opts+'</select></div><div id="noticeList" style="margin-top:20px"></div>';
+}
+function onStaffSelected(){
+  var sel = document.getElementById('staffSelect'), listArea = document.getElementById('noticeList');
+  if(sel.value === ''){ listArea.innerHTML = ''; CURRENT_STAFF = null; return; }
+  CURRENT_STAFF = STAFF_LIST[Number(sel.value)]; listArea.innerHTML = '<div style="text-align:center;color:var(--cyan);padding:30px;font-family:var(--mono)">CHECKING NOTICES...</div>';
+  api.call('getNotices', {staffId: CURRENT_STAFF.staffId}).then(renderNotices).catch(function(e){listArea.innerHTML='エラー: '+e;});
+}
+function renderNotices(notices){
+  var listArea = document.getElementById('noticeList');
+  if(!notices || notices.length === 0){ listArea.innerHTML = '<div style="text-align:center;padding:30px;color:var(--sub);">現在表示できる共有事項はありません。</div>'; return; }
+  var html = '';
+  notices.forEach(function(n){
+    html += '<div class="'+(n.isRead?'notice-item':'notice-item unread')+'" id="notice-'+n.id+'">'
+      + (n.isRead ? '<span class="badge-read">確認済</span>' : '<span class="badge-unread">未読</span>')
+      + '<div class="notice-header"><div class="n-title">'+esc(n.title)+'</div><div class="n-meta">'+esc(n.date)+'<br>'+esc(n.author)+'</div></div>'
+      + '<div class="n-body">'+esc(n.content)+'</div>';
+    if(n.imageUrl) html += '<div class="n-image"><a href="'+esc(n.imageUrl)+'" target="_blank"><img src="'+esc(n.imageUrl)+'"></a></div>';
+    if(!n.isRead) html += '<button class="btn-read" id="btn-'+n.id+'" onclick="markRead(\''+n.id+'\')">内容を了解しました（確認済みにする）</button>';
+    html += '</div>';
+  }); listArea.innerHTML = html;
+}
+function markRead(noticeId){
+  if(!CURRENT_STAFF) return; var btn = document.getElementById('btn-'+noticeId); btn.disabled = true; btn.textContent = '処理中...';
+  api.call('markNoticeRead', {noticeId: noticeId, staffId: CURRENT_STAFF.staffId}).then(function(res){
+    if(res.ok){ var item = document.getElementById('notice-'+noticeId); item.className = 'notice-item'; btn.style.display = 'none'; item.querySelector('.badge-unread').outerHTML = '<span class="badge-read">確認済</span>'; }
+    else { alert('エラー: ' + res.error); btn.disabled = false; btn.textContent = '内容を了解しました'; }
+  });
+}
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

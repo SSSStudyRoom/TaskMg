@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理ダッシュボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
+  ::selection{background:var(--cyan);color:#04121a}
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px 60px;position:relative;z-index:1}
+  header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14);border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
+  header::before{content:"OPS TERMINAL // DASHBOARD";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--pink);opacity:.85;margin-bottom:4px;text-shadow:0 0 8px rgba(255,43,214,.5)}
+  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.04em; color:#eafff8;text-shadow:0 0 8px rgba(0,234,255,.7),2px 0 rgba(255,43,214,.45),-2px 0 rgba(0,234,255,.45)}
+  header .sub{font-family:var(--mono);font-size:12px;color:var(--sub);margin-top:4px;letter-spacing:.05em}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
+  .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em; color:var(--cyan);text-decoration:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;transition:.15s}
+  .navbtn:hover{background:rgba(0,234,255,.08);box-shadow:0 0 12px rgba(0,234,255,.4)}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
+  .card::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+  .card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--pink);border-right:2px solid var(--pink)}
+  .label{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
+  input[type=text], textarea { width:100%; border:1px solid var(--line); padding:10px; font-size:15px; color:var(--ink); background:rgba(4,8,18,.85); outline:none; margin-bottom:8px; }
+  input[type=text]:focus, textarea:focus { border-color:var(--pink); box-shadow:0 0 10px rgba(255,43,214,.3); }
+  .photoarea{margin-bottom:10px}
+  .photobtn{display:inline-flex;align-items:center;gap:7px;border:1px dashed var(--cyan);color:var(--cyan);background:rgba(0,234,255,.05);padding:10px 15px;font-size:13px;font-weight:700;font-family:var(--mono);cursor:pointer;}
+  .preview{position:relative;display:inline-block}
+  .preview img{max-width:170px;display:block;border:1px solid var(--cyan);box-shadow:0 0 14px rgba(0,234,255,.35)}
+  .preview .x{position:absolute;top:-9px;right:-9px;background:var(--pink);color:#fff;width:26px;height:26px;border:0;font-size:15px;cursor:pointer;}
+  h3{font-family:var(--mono);font-size:12px;margin:22px 2px 2px;color:var(--pink);letter-spacing:.16em;text-transform:uppercase;text-shadow:0 0 8px rgba(255,43,214,.5)}
+  h3::before{content:"\25AE  "}
+  .row{display:flex;gap:10px;align-items:center;padding:11px;margin-top:8px; background:var(--panel2);border:1px solid var(--line);border-left:3px solid rgba(0,234,255,.35)}
+  .row.warn{border-left-color:var(--danger)}
+  .row.ok{border-left-color:var(--acid)}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border:1px solid var(--line);color:var(--cyan);letter-spacing:.06em;white-space:nowrap}
+  .pill.late{color:#ffd0dd;border-color:var(--danger)}
+  .pill.ontime{color:var(--acid);border-color:rgba(182,255,58,.5)}
+  .grow{flex:1;min-width:0}
+  .nm{font-size:15px;color:var(--ink)}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--sub);letter-spacing:.04em}
+  .openbtn{font-family:var(--disp);font-weight:700;letter-spacing:.04em;color:#04121a; background:linear-gradient(90deg,var(--acid),#7fe000);padding:8px 13px;text-decoration:none;font-size:12px;white-space:nowrap; clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%)}
+  .submit-btn{font-family:var(--disp);font-weight:700;letter-spacing:.04em;color:#04121a; background:linear-gradient(90deg,var(--cyan),#22b6ff);padding:10px;border:0;width:100%;font-size:14px;cursor:pointer; clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);box-shadow:0 0 12px rgba(0,234,255,.3)}
+  .statbig{font-family:var(--disp);font-size:22px;color:var(--acid);text-shadow:0 0 8px rgba(182,255,58,.5)}
+  .empty{color:var(--sub);font-family:var(--mono);font-size:13px;padding:10px 2px}
+  .loading,.msg{text-align:center;padding:70px 20px;color:var(--cyan);font-family:var(--mono);letter-spacing:.08em}
+  .refresh{margin-top:18px;width:100%;border:1px solid var(--cyan);background:rgba(0,234,255,.06); color:var(--cyan);padding:11px;font-family:var(--mono);letter-spacing:.1em;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="navbtn" href="index.html">🏠 業務報告</a>
+    <a class="navbtn" href="notice.html">📢 お知らせ</a>
+    <a class="navbtn" href="quiz.html">📝 小テスト</a>
+    <a class="navbtn" href="visits.html">👨‍🏫 生徒来室状況</a>
+  </div>
+  <h1>管理ダッシュボード</h1>
+  <div class="sub" id="subLabel">読み込み中…</div>
+</header>
+<div class="wrap" id="app"><div class="loading">LOADING INTERFACE...</div></div>
+
+<script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
+const api = {
+  call: function(action, payload) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: action, payload: payload || {} })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function(err) { console.error('API Error:', err); throw err; });
+  }
+};
+
+
+var NOTICE_PHOTO = null;
+
+window.onload = function(){ load(); };
+
+function load(){
+  api.call('getDashboardData').then(render).catch(function(e){ document.getElementById('app').innerHTML='<div class="msg">エラー：'+e+'</div>'; });
+}
+
+function render(d){
+  if(!d || !d.ok){ document.getElementById('subLabel').textContent=''; document.getElementById('app').innerHTML='<div class="msg">'+esc(d&&d.error||'読み込めませんでした')+'</div>'; return; }
+  document.getElementById('subLabel').textContent = d.today;
+  var html='';
+
+  html += '<h3>📢 全体へのお知らせ配信</h3>';
+  html += '<div class="card"><div class="label">ANNOUNCEMENT TITLE / タイトル</div><input type="text" id="admNoticeTitle" placeholder="スタッフ全員に共有する用件を入力..."><div class="label" style="margin-top:8px;">MESSAGE / 本文</div><textarea id="admNoticeContent" style="min-height:70px;" placeholder="伝達事項、引き継ぎ詳細など..."></textarea>';
+  
+  html += '<div class="photoarea" id="admNoticePhotoArea">';
+  if(NOTICE_PHOTO) html += '<div class="preview"><img src="data:'+NOTICE_PHOTO.mime+';base64,'+NOTICE_PHOTO.data+'"><button class="x" onclick="removeNoticePhoto()">×</button></div>';
+  else html += '<label class="photobtn">📷 画像を添付する<input type="file" accept="image/*" style="display:none" onchange="onNoticePhoto(event)"></label>';
+  html += '</div>';
+
+  html += '<button class="submit-btn" id="admNoticeBtn" onclick="submitAdminNotice()">📢 お知らせを全体へ配信</button></div>';
+
+  html += '<h3>承認待ち（'+d.pending.length+'件）</h3><div class="card">';
+  if(!d.pending.length){ html+='<div class="empty">承認待ちはありません 👍</div>'; } else {
+    d.pending.forEach(function(p){
+      var url = 'review.html?id='+encodeURIComponent(p.reportId);
+      html += '<div class="row warn"><div class="grow"><div class="nm">'+esc(p.staffName||'')+'<span class="meta"> ／ '+esc(p.date)+' '+esc(p.shift)+'の部</span></div><div class="meta">提出 '+esc(p.time)+'　完了 '+p.doneCount+'/'+p.total+'</div></div><a class="openbtn" href="' + url + '">承認する</a></div>';
+    });
+  } html += '</div>';
+
+  html += '<h3>本日の業務報告</h3><div class="card">';
+  if(!d.reportsToday.length){ html+='<div class="empty">まだ提出はありません。</div>'; } else {
+    d.reportsToday.forEach(function(r){
+      var rate = r.total ? Math.round(r.doneCount/r.total*100) : 0, st = r.status==='承認済み'?'ok':(r.status==='差し戻し'?'warn':'');
+      html += '<div class="row '+st+'"><div class="grow"><div class="nm">'+esc(r.shift)+'の部　'+esc(r.staffName||'')+'</div><div class="meta">提出 '+esc(r.time)+'　温湿度 '+esc(r.temperature||'-')+'℃/'+esc(r.humidity||'-')+'%</div></div><div style="text-align:right"><div class="statbig">'+rate+'%</div><div class="pill">'+esc(r.status)+'</div></div></div>';
+    });
+  } html += '</div>';
+
+  html += '<h3>本日の出勤</h3><div class="card">';
+  if(!d.attendToday.length){ html+='<div class="empty">出勤打刻はまだありません。</div>'; } else {
+    d.attendToday.forEach(function(a){
+      var late = (a.state==='遅刻');
+      html += '<div class="row '+(late?'warn':'ok')+'"><div class="grow"><div class="nm">'+esc(a.shift)+'の部　'+esc(a.staffName)+'</div>'+(late&&a.reason?'<div class="meta">理由：'+esc(a.reason)+'</div>':'')+'</div><div style="text-align:right"><div class="meta">'+esc(a.actual)+' / 定刻'+esc(a.scheduled)+'</div><div class="pill '+(late?'late':'ontime')+'">'+(late?('遅刻 '+a.minutesLate+'分'):'定刻')+'</div></div></div>';
+    });
+  } html += '</div>';
+
+  html += '<button class="refresh" onclick="load()">↻ 最新の状態に更新</button>';
+  html += '<div class="meta" style="margin-top:10px;text-align:center">閲覧者：'+esc(d.viewer)+'</div>';
+  document.getElementById('app').innerHTML = html;
+}
+
+function onNoticePhoto(ev){
+  var file = ev.target.files[0]; if(!file) return;
+  compress(file, function(base64){ NOTICE_PHOTO = { data:base64, mime:'image/jpeg', name:file.name||'notice.jpg' }; load(); });
+}
+function removeNoticePhoto(){ NOTICE_PHOTO = null; load(); }
+
+function compress(file, cb){
+  var reader = new FileReader();
+  reader.onload = function(e){ var img = new Image(); img.onload = function(){ var max=1280, w=img.width, h=img.height; if(w>h && w>max){ h=h*max/w; w=max; } else if(h>=w && h>max){ w=w*max/h; h=max; } var c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.7).split(',')[1]); }; img.src = e.target.result; }; reader.readAsDataURL(file);
+}
+
+function submitAdminNotice(){
+  var title = document.getElementById('admNoticeTitle').value.trim(), content = document.getElementById('admNoticeContent').value.trim();
+  if(!title || !content){ alert('タイトルと内容を入力してください。'); return; }
+  var btn = document.getElementById('admNoticeBtn'); btn.disabled = true; btn.textContent = 'TRANSMITTING...';
+  api.call('addNotice', { author: '管理者', title: title, content: content, photo: NOTICE_PHOTO }).then(function(res){
+    if(res.ok){ alert('全体にお知らせを配信しました！'); NOTICE_PHOTO=null; load(); } else { alert('エラーが発生しました: ' + res.error); btn.disabled = false; btn.textContent = '📢 お知らせを全体へ配信'; }
+  });
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

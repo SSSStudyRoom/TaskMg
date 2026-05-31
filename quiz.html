@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小テスト管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px 60px;position:relative;z-index:1}
+  header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14);border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
+  header::before{content:"STUDY ROOM // QUIZ SYSTEM";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--cyan);opacity:.85;margin-bottom:4px;text-shadow:0 0 8px rgba(0,234,255,.5)}
+  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.04em;color:#eafff8; text-shadow:0 0 8px rgba(0,234,255,.7),2px 0 rgba(255,43,214,.45),-2px 0 rgba(0,234,255,.45)}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
+  .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em; color:var(--cyan);text-decoration:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;transition:.15s}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
+  .label{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}
+  select{width:100%;border:1px solid var(--line);border-radius:0;padding:11px;font-size:15px;font-family:var(--jp); background:rgba(4,8,18,.85);color:var(--acid);outline:none;appearance:none;cursor:pointer; background-image:linear-gradient(45deg,transparent 50%,var(--cyan) 50%),linear-gradient(135deg,var(--cyan) 50%,transparent 50%); background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 16px; }
+  .quiz-btn { display: flex; align-items: center; justify-content: center; background: rgba(0,234,255,.05); border: 1px solid var(--cyan); color: var(--cyan); font-family: var(--mono); font-size: 14px; font-weight: bold; text-decoration: none; padding: 12px 0; border-radius: 4px; transition: .2s; box-shadow: 0 0 8px rgba(0,234,255,.2); text-align: center; }
+  .quiz-btn:hover { background: var(--cyan); color: #04121a; box-shadow: 0 0 16px rgba(0,234,255,.6); transform: translateY(-2px); }
+  .loading{text-align:center;padding:50px;color:var(--cyan);font-family:var(--mono);letter-spacing:.1em}
+  .empty{text-align:center;padding:30px;color:var(--sub);font-family:var(--jp);font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="navbtn" href="index.html">🏠 業務報告</a>
+    <a class="navbtn" href="notice.html">📢 お知らせ</a>
+    <a class="navbtn" href="visits.html">👨‍🏫 来室状況</a>
+  </div>
+  <h1>小テスト管理・印刷</h1>
+</header>
+<div class="wrap" id="app"><div class="loading">SYSTEM CONNECTING...</div></div>
+<script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
+const api = {
+  call: function(action, payload) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: action, payload: payload || {} })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function(err) { console.error('API Error:', err); throw err; });
+  }
+};
+
+
+var QUIZ_DATA = [];
+
+window.onload = function(){
+  api.call('getQuizData').then(initData).catch(showError);
+};
+
+function initData(res){
+  if(!res.ok){ showError(res.error); return; }
+  QUIZ_DATA = res.books; renderSelect();
+}
+
+function showError(err){
+  document.getElementById('app').innerHTML = '<div class="card"><div class="empty" style="color:var(--danger)">エラーが発生しました：<br>' + esc(err) + '</div></div>';
+}
+
+function renderSelect(){
+  var opts = '<option value="">▼ 参考書を選択してください</option>';
+  QUIZ_DATA.forEach(function(b, i){ opts += '<option value="'+i+'">'+esc(b.name)+'</option>'; });
+  document.getElementById('app').innerHTML = '<div class="card"><div class="label">REFERENCE BOOK / 参考書</div><select id="bookSelect" onchange="onBookSelected()">'+opts+'</select></div><div id="linksArea"></div>';
+}
+
+function onBookSelected(){
+  var sel = document.getElementById('bookSelect'), area = document.getElementById('linksArea');
+  if(sel.value === ''){ area.innerHTML = ''; return; }
+  var book = QUIZ_DATA[Number(sel.value)], html = '<div class="card" style="margin-top:16px"><div class="label">TEST NUMBER / テスト番号を選択して印刷</div><div class="grid">';
+  book.links.forEach(function(l){ html += '<a class="quiz-btn" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">No. '+esc(l.number)+'</a>'; });
+  html += '</div></div>'; area.innerHTML = html;
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

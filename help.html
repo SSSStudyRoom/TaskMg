@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>質問受付</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --mono:'Share Tech Mono',monospace; --disp:'Orbitron',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  *{box-sizing:border-box;}
+  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(800px 600px at 50% 0%,rgba(0,234,255,.15),transparent 70%), var(--bg); background-attachment:fixed; padding: 20px 14px;}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
+  .wrap{max-width:500px;margin:0 auto;position:relative;z-index:1}
+  .header-title { text-align:center; font-family:var(--disp); font-size:24px; color:var(--cyan); text-shadow:0 0 10px rgba(0,234,255,.6); margin-bottom: 5px; }
+  .header-sub { text-align:center; font-family:var(--jp); font-size:14px; color:var(--sub); margin-bottom: 20px; }
+  .card{background:var(--panel);border:1px solid var(--line);padding:20px;backdrop-filter:blur(4px);box-shadow:0 0 20px rgba(0,234,255,.1); position:relative;}
+  .label{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.1em;margin-bottom:6px; margin-top:16px; display:block;}
+  input[type=text], select { width:100%;border:1px solid var(--line);border-radius:0;padding:12px;font-size:15px;font-family:var(--jp);background:rgba(4,8,18,.8);color:var(--ink);outline:none; transition:.2s; }
+  input[type=text]:focus, select:focus { border-color:var(--pink); box-shadow:0 0 10px rgba(255,43,214,.3); }
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--cyan) 50%),linear-gradient(135deg,var(--cyan) 50%,transparent 50%); background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat; cursor:pointer;}
+  .btn{display:block;width:100%;margin-top:30px;background:linear-gradient(90deg,var(--pink),#ff007f);color:#fff;border:0;padding:16px;font-size:16px;font-weight:700;font-family:var(--disp);letter-spacing:.08em;cursor:pointer;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%);box-shadow:0 0 20px rgba(255,43,214,.4); transition: .2s;}
+  .done-msg { display:none; text-align:center; padding: 40px 10px; }
+  .done-msg h2 { color:var(--acid); font-family:var(--jp); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-title">HELP REQUEST</div>
+  <div class="header-sub">質問・対応リクエスト</div>
+  <div class="card" id="formArea">
+    <label class="label">STUDENT ID & NAME / お名前 (必須)</label>
+    <select id="sStudent" disabled><option value="">▼ データを読み込み中...</option></select>
+    <label class="label">TOPIC / 質問の科目・内容 (必須)</label>
+    <input type="text" id="sTopic" placeholder="例: 数学の〇〇ページ 等">
+    <button class="btn" id="submitBtn" onclick="sendHelp()">🚨 リクエストを送信</button>
+  </div>
+  <div class="card done-msg" id="doneArea">
+    <h2>✅ 受付完了</h2>
+    <p style="color:var(--sub)">スタッフに通知されました。<br>自席でお待ちください。</p>
+    <button class="btn" style="background:var(--cyan);color:#000;margin-top:20px;" onclick="location.reload()">◀ 戻る</button>
+  </div>
+</div>
+<script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
+const api = {
+  call: function(action, payload) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: action, payload: payload || {} })
+    })
+    .then(function(res) { return res.json(); })
+    .catch(function(err) { console.error('API Error:', err); throw err; });
+  }
+};
+
+window.onload = function() {
+  api.call('getStudentList').then(function(res){
+    var sel = document.getElementById('sStudent');
+    if(res.ok) {
+      sel.innerHTML = '<option value="">▼ 自分の名前(ID)を選択してください</option>';
+      res.students.forEach(function(s) { sel.innerHTML += '<option value="'+s.id+'" data-name="'+s.name+'">ID: '+s.id+' - '+s.name+'</option>'; });
+      sel.disabled = false;
+    } else { sel.innerHTML = '<option value="">リスト取得エラー</option>'; alert(res.error); }
+  }).catch(function(e){alert('エラー:'+e);});
+};
+function sendHelp(){
+  var sel = document.getElementById('sStudent'), topic = document.getElementById('sTopic').value.trim();
+  if(sel.value === ''){ alert('お名前を選択してください。'); return; }
+  if(!topic){ alert('質問の科目・内容を入力してください。'); return; }
+  var btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'TRANSMITTING...';
+  api.call('addHelpRequest', { studentId: sel.value, studentName: sel.options[sel.selectedIndex].getAttribute('data-name'), topic: topic }).then(function(res){
+    if(res.ok){ document.getElementById('formArea').style.display = 'none'; document.getElementById('doneArea').style.display = 'block'; }
+    else { alert('エラー: ' + res.error); btn.disabled = false; btn.textContent = '🚨 リクエストを送信'; }
+  });
+}
+</script>
+</body>
+</html>
