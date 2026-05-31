@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>管理ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
@@ -22,14 +24,17 @@
   .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
   .card::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
   .card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--pink);border-right:2px solid var(--pink)}
+  
   .label{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
   input[type=text], textarea { width:100%; border:1px solid var(--line); padding:10px; font-size:15px; color:var(--ink); background:rgba(4,8,18,.85); outline:none; margin-bottom:8px; }
   input[type=text]:focus, textarea:focus { border-color:var(--pink); box-shadow:0 0 10px rgba(255,43,214,.3); }
+
   .photoarea{margin-bottom:10px}
   .photobtn{display:inline-flex;align-items:center;gap:7px;border:1px dashed var(--cyan);color:var(--cyan);background:rgba(0,234,255,.05);padding:10px 15px;font-size:13px;font-weight:700;font-family:var(--mono);cursor:pointer;}
   .preview{position:relative;display:inline-block}
   .preview img{max-width:170px;display:block;border:1px solid var(--cyan);box-shadow:0 0 14px rgba(0,234,255,.35)}
   .preview .x{position:absolute;top:-9px;right:-9px;background:var(--pink);color:#fff;width:26px;height:26px;border:0;font-size:15px;cursor:pointer;}
+
   h3{font-family:var(--mono);font-size:12px;margin:22px 2px 2px;color:var(--pink);letter-spacing:.16em;text-transform:uppercase;text-shadow:0 0 8px rgba(255,43,214,.5)}
   h3::before{content:"\25AE  "}
   .row{display:flex;gap:10px;align-items:center;padding:11px;margin-top:8px; background:var(--panel2);border:1px solid var(--line);border-left:3px solid rgba(0,234,255,.35)}
@@ -52,10 +57,10 @@
 <body>
 <header>
   <div class="nav">
-    <a class="navbtn" href="index.html">🏠 業務報告</a>
-    <a class="navbtn" href="notice.html">📢 お知らせ</a>
-    <a class="navbtn" href="quiz.html">📝 小テスト</a>
-    <a class="navbtn" href="visits.html">👨‍🏫 生徒来室状況</a>
+    <a class="navbtn" id="formLink" target="_top">🏠 業務報告</a>
+    <a class="navbtn" id="noticeLink" target="_top">📢 お知らせ一覧</a>
+    <a class="navbtn" id="quizLink" target="_top">📝 小テスト</a>
+    <a class="navbtn" id="visitsLink" target="_top">👨‍🏫 生徒来室状況</a>
   </div>
   <h1>管理ダッシュボード</h1>
   <div class="sub" id="subLabel">読み込み中…</div>
@@ -63,27 +68,18 @@
 <div class="wrap" id="app"><div class="loading">LOADING INTERFACE...</div></div>
 
 <script>
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
-const api = {
-  call: function(action, payload) {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: action, payload: payload || {} })
-    })
-    .then(function(res) { return res.json(); })
-    .catch(function(err) { console.error('API Error:', err); throw err; });
-  }
-};
-
-
+var WEBAPP_URL = '<?= webappUrl ?>';
 var NOTICE_PHOTO = null;
 
-window.onload = function(){ load(); };
+window.onload = function(){
+  var base = WEBAPP_URL || '';
+  var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + (page ? '?page=' + page : '')) : '#'; };
+  setHref('formLink', ''); setHref('noticeLink', 'notice'); setHref('quizLink', 'quiz'); setHref('visitsLink', 'visits');
+  load();
+};
 
 function load(){
-  api.call('getDashboardData').then(render).catch(function(e){ document.getElementById('app').innerHTML='<div class="msg">エラー：'+e+'</div>'; });
+  google.script.run.withSuccessHandler(render).withFailureHandler(function(e){ document.getElementById('app').innerHTML='<div class="msg">エラー：'+e+'</div>'; }).getDashboardData();
 }
 
 function render(d){
@@ -104,8 +100,8 @@ function render(d){
   html += '<h3>承認待ち（'+d.pending.length+'件）</h3><div class="card">';
   if(!d.pending.length){ html+='<div class="empty">承認待ちはありません 👍</div>'; } else {
     d.pending.forEach(function(p){
-      var url = 'review.html?id='+encodeURIComponent(p.reportId);
-      html += '<div class="row warn"><div class="grow"><div class="nm">'+esc(p.staffName||'')+'<span class="meta"> ／ '+esc(p.date)+' '+esc(p.shift)+'の部</span></div><div class="meta">提出 '+esc(p.time)+'　完了 '+p.doneCount+'/'+p.total+'</div></div><a class="openbtn" href="' + url + '">承認する</a></div>';
+      var url = WEBAPP_URL ? (WEBAPP_URL+'?page=review&id='+encodeURIComponent(p.reportId)) : '#';
+      html += '<div class="row warn"><div class="grow"><div class="nm">'+esc(p.staffName||'')+'<span class="meta"> ／ '+esc(p.date)+' '+esc(p.shift)+'の部</span></div><div class="meta">提出 '+esc(p.time)+'　完了 '+p.doneCount+'/'+p.total+'</div></div><a class="openbtn" href="' + url + '" target="_top">承認する</a></div>';
     });
   } html += '</div>';
 
@@ -145,12 +141,13 @@ function submitAdminNotice(){
   var title = document.getElementById('admNoticeTitle').value.trim(), content = document.getElementById('admNoticeContent').value.trim();
   if(!title || !content){ alert('タイトルと内容を入力してください。'); return; }
   var btn = document.getElementById('admNoticeBtn'); btn.disabled = true; btn.textContent = 'TRANSMITTING...';
-  api.call('addNotice', { author: '管理者', title: title, content: content, photo: NOTICE_PHOTO }).then(function(res){
+  google.script.run.withSuccessHandler(function(res){
     if(res.ok){ alert('全体にお知らせを配信しました！'); NOTICE_PHOTO=null; load(); } else { alert('エラーが発生しました: ' + res.error); btn.disabled = false; btn.textContent = '📢 お知らせを全体へ配信'; }
-  });
+  }).addNotice({ author: '管理者', title: title, content: content, photo: NOTICE_PHOTO });
 }
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>

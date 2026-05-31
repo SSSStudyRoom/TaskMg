@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>業務報告の承認</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
@@ -16,6 +16,8 @@
   header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700; color:#eafff8;text-shadow:0 0 8px rgba(0,234,255,.7)}
   header .sub{font-family:var(--mono);font-size:12px;color:var(--sub);margin-top:4px;letter-spacing:.05em}
   .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
+  .card::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+  .card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--pink);border-right:2px solid var(--pink)}
   .meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--ink)}
   .meta div span{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-right:5px;text-transform:uppercase}
   h3{font-family:var(--mono);font-size:12px;margin:20px 2px 4px;color:var(--pink);letter-spacing:.16em;text-transform:uppercase;text-shadow:0 0 8px rgba(255,43,214,.5)}
@@ -36,33 +38,25 @@
 <body>
 <header>
   <div class="nav">
-    <a class="navbtn" href="index.html">🏠 業務報告</a>
-    <a class="navbtn" href="dashboard.html">📊 ダッシュボード</a>
+    <a class="navbtn" id="formLink" target="_top">🏠 業務報告</a>
+    <a class="navbtn" id="quizLink" target="_top">📝 小テスト</a>
+    <a class="navbtn" id="dashLink" target="_top">📊 ダッシュボード</a>
   </div>
   <h1>業務報告の承認</h1><div class="sub" id="subLabel">読み込み中…</div>
 </header>
 <div class="wrap" id="app"><div style="text-align:center;padding:70px;color:var(--cyan);font-family:var(--mono)">読み込み中…</div></div>
 <div class="footer" id="footer" style="display:none"><div class="inner"><button class="btn reject" onclick="decide('reject')">差し戻し</button><button class="btn approve" onclick="decide('approve')">承認する</button></div></div>
 <script>
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
-const api = {
-  call: function(action, payload) {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: action, payload: payload || {} })
-    })
-    .then(function(res) { return res.json(); })
-    .catch(function(err) { console.error('API Error:', err); throw err; });
-  }
-};
-
-var REPORT_ID = new URLSearchParams(window.location.search).get('id') || '';
+var WEBAPP_URL = '<?= webappUrl ?>'; var REPORT_ID = '<?= reportId ?>';
+if (!REPORT_ID || REPORT_ID.indexOf('<' + '?') >= 0) { const params = new URLSearchParams(window.location.search); REPORT_ID = params.get('id') || ''; }
 window.onload = function(){
+  var base = WEBAPP_URL || '';
+  var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + '?page=' + page) : '#'; };
+  setHref('formLink', ''); setHref('quizLink', 'quiz'); setHref('dashLink', 'dashboard');
   if(!REPORT_ID){ document.getElementById('app').innerHTML='<div style="color:red;padding:20px">IDがありません。</div>'; return; }
-  api.call('getReport', {reportId: REPORT_ID}).then(render).catch(function(e){ document.getElementById('app').innerHTML='エラー: '+e; });
+  google.script.run.withSuccessHandler(render).getReport(REPORT_ID);
 };
+
 function render(res){
   if(!res || !res.ok){ document.getElementById('app').innerHTML='<div style="padding:20px">'+esc(res&&res.error||'報告が見つかりません')+'</div>'; return; }
   var r = res.report; document.getElementById('subLabel').textContent = r.date+' '+r.shift+'の部 / '+r.staffName;
@@ -72,6 +66,7 @@ function render(res){
     + '<div style="color:var(--amber);font-weight:bold;text-shadow:0 0 6px rgba(255,210,61,.5)"><span>ボーナス</span>'+(r.bonusPoints||0)+' PT</div>';
   if(r.temperature) html += '<div><span>温湿度</span>'+esc(r.temperature)+'℃ / '+esc(r.humidity)+'%</div>';
   html += '</div></div>';
+
   html += '<h3>業務チェック</h3>';
   (r.tasks||[]).forEach(function(t){
     html += '<div class="task"><div class="mark'+(t.done?'':' ng')+'">'+(t.done?'✅':'⛔️')+'</div><div style="flex:1"><div class="tname">'+esc(t.name)+'</div>';
@@ -81,18 +76,21 @@ function render(res){
   });
   html += '<h3>生徒の状況</h3><div class="free">'+esc(r.studentStatus||'記載なし')+'</div>';
   html += '<h3>特記事項</h3><div class="free">'+esc(r.notes||'記載なし')+'</div>';
+
   document.getElementById('app').innerHTML = html;
   if(r.status==='承認待ち' && r.canApprove) document.getElementById('footer').style.display='block';
 }
+
 function decide(decision){
   var reason=''; if(decision==='reject'){ reason = prompt('差し戻し理由を入力してください',''); if(reason===null) return; }
   document.querySelectorAll('.btn').forEach(function(b){ b.disabled=true; });
-  api.call('decideReport', {reportId: REPORT_ID, decision: decision, reason: reason}).then(function(res){
-    if(res && res.ok){ document.getElementById('footer').style.display='none'; document.getElementById('app').innerHTML='<div style="text-align:center;padding:50px"><h2>処理完了</h2><a href="dashboard.html" style="color:var(--cyan)">ダッシュボードへ戻る</a></div>'; }
+  google.script.run.withSuccessHandler(function(res){
+    if(res && res.ok){ document.getElementById('footer').style.display='none'; document.getElementById('app').innerHTML='<div style="text-align:center;padding:50px"><h2>処理完了</h2><a href="'+(WEBAPP_URL?WEBAPP_URL+'?page=dashboard':'#')+'" style="color:var(--cyan)">ダッシュボードへ戻る</a></div>'; }
     else { alert('失敗：'+res.error); document.querySelectorAll('.btn').forEach(function(b){b.disabled=false;}); }
-  }).catch(function(e){ alert('エラー:'+e); document.querySelectorAll('.btn').forEach(function(b){b.disabled=false;}); });
+  }).decideReport(REPORT_ID, decision, reason);
 }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>生徒来室状況</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
@@ -35,10 +35,10 @@
 <body>
 <header>
   <div class="nav">
-    <a class="navbtn" href="index.html">🏠 業務報告</a>
-    <a class="navbtn" href="notice.html">📢 お知らせ</a>
-    <a class="navbtn" href="quiz.html">📝 小テスト</a>
-    <a class="navbtn" href="dashboard.html">📊 ダッシュボード</a>
+    <a class="navbtn" id="formLink" target="_top">🏠 業務報告</a>
+    <a class="navbtn" id="noticeLink" target="_top">📢 お知らせ</a>
+    <a class="navbtn" id="quizLink" target="_top">📝 小テスト</a>
+    <a class="navbtn" id="dashboardLink" target="_top">📊 ダッシュボード</a>
   </div>
   <h1>自習室 来室状況</h1>
   <div class="date" id="date">読み込み中...</div>
@@ -46,20 +46,13 @@
 <div class="wrap" id="app"><div style="text-align:center;padding:70px;color:var(--cyan);font-family:var(--mono)">SYSTEM BOOTING...</div></div>
 <button class="refresh" onclick="load()">↻</button>
 <script>
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
-const api = {
-  call: function(action, payload) {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: action, payload: payload || {} })
-    })
-    .then(function(res) { return res.json(); })
-    .catch(function(err) { console.error('API Error:', err); throw err; });
-  }
-};
-
+var WEBAPP_URL = '<?= webappUrl ?>';
+if (!WEBAPP_URL || WEBAPP_URL.indexOf('<' + '?') >= 0) { WEBAPP_URL = window.location.href.split('?')[0]; }
+(function(){
+  var base = WEBAPP_URL || '';
+  var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + (page ? '?page=' + page : '')) : '#'; };
+  setHref('formLink', ''); setHref('noticeLink', 'notice'); setHref('quizLink', 'quiz'); setHref('dashboardLink', 'dashboard');
+})();
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function strategyBlock(s){ if (!s) return '<span class="strategy-btn disabled">戦略未設定</span>'; if (s.match(/^https?:\/\//)) { return '<a class="strategy-btn" href="'+esc(s)+'" target="_blank">📋 OPEN STRATEGY</a>'; } return '<span style="font-size:12px;color:var(--sub)">📋 '+esc(s)+'</span>'; }
@@ -79,8 +72,9 @@ function render(d){
   html += '</div><div class="updated">LAST UPDATE: '+esc(d.now)+' (AUTO SYNC EVERY 1 MIN)</div>';
   document.getElementById('app').innerHTML = html;
 }
-function load(){ api.call('getStudentsToday').then(render).catch(function(e){document.getElementById('app').innerHTML='エラー: '+e;}); }
+function load(){ google.script.run.withSuccessHandler(render).getStudentsToday(); }
 load(); setInterval(load, 60000);
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>

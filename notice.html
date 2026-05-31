@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>引き継ぎ・共有事項</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
@@ -34,32 +34,21 @@
 <body>
 <header>
   <div class="nav">
-    <a class="navbtn" href="index.html">🏠 業務報告</a>
-    <a class="navbtn" href="quiz.html">📝 小テスト</a>
-    <a class="navbtn" href="dashboard.html">📊 ダッシュボード</a>
+    <a class="navbtn" id="formLink" target="_top">🏠 業務報告</a>
+    <a class="navbtn" id="quizLink" target="_top">📝 小テスト</a>
+    <a class="navbtn" id="dashLink" target="_top">📊 ダッシュボード</a>
   </div>
   <h1>引き継ぎ・共有事項</h1>
 </header>
 <div class="wrap" id="app"><div style="text-align:center;padding:50px;color:var(--cyan);font-family:var(--mono)">読み込み中…</div></div>
 <script>
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbyhofj70rjZiZwbVjgRz_QMOncAi0s_c-SpE-Rl8F4GhiiP3bgfjFwklHJWVcmXq_BK/exec';
-const api = {
-  call: function(action, payload) {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: action, payload: payload || {} })
-    })
-    .then(function(res) { return res.json(); })
-    .catch(function(err) { console.error('API Error:', err); throw err; });
-  }
-};
-
-
+var WEBAPP_URL = '<?= webappUrl ?>';
 var STAFF_LIST = []; var CURRENT_STAFF = null;
 window.onload = function(){
-  api.call('getInitialData').then(function(res){ STAFF_LIST = res.staffList; renderSelector(); }).catch(function(e){ document.getElementById('app').innerHTML='エラー: '+e; });
+  var base = WEBAPP_URL || '';
+  var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + '?page=' + page) : '#'; };
+  setHref('formLink', ''); setHref('quizLink', 'quiz'); setHref('dashLink', 'dashboard');
+  google.script.run.withSuccessHandler(function(res){ STAFF_LIST = res.staffList; renderSelector(); }).getInitialData();
 };
 function renderSelector(){
   var opts = '<option value="">▼ あなたの名前を選択してください</option>';
@@ -70,7 +59,7 @@ function onStaffSelected(){
   var sel = document.getElementById('staffSelect'), listArea = document.getElementById('noticeList');
   if(sel.value === ''){ listArea.innerHTML = ''; CURRENT_STAFF = null; return; }
   CURRENT_STAFF = STAFF_LIST[Number(sel.value)]; listArea.innerHTML = '<div style="text-align:center;color:var(--cyan);padding:30px;font-family:var(--mono)">CHECKING NOTICES...</div>';
-  api.call('getNotices', {staffId: CURRENT_STAFF.staffId}).then(renderNotices).catch(function(e){listArea.innerHTML='エラー: '+e;});
+  google.script.run.withSuccessHandler(renderNotices).getNotices(CURRENT_STAFF.staffId);
 }
 function renderNotices(notices){
   var listArea = document.getElementById('noticeList');
@@ -88,12 +77,13 @@ function renderNotices(notices){
 }
 function markRead(noticeId){
   if(!CURRENT_STAFF) return; var btn = document.getElementById('btn-'+noticeId); btn.disabled = true; btn.textContent = '処理中...';
-  api.call('markNoticeRead', {noticeId: noticeId, staffId: CURRENT_STAFF.staffId}).then(function(res){
+  google.script.run.withSuccessHandler(function(res){
     if(res.ok){ var item = document.getElementById('notice-'+noticeId); item.className = 'notice-item'; btn.style.display = 'none'; item.querySelector('.badge-unread').outerHTML = '<span class="badge-read">確認済</span>'; }
     else { alert('エラー: ' + res.error); btn.disabled = false; btn.textContent = '内容を了解しました'; }
-  });
+  }).markNoticeRead(noticeId, CURRENT_STAFF.staffId);
 }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
 </body>
 </html>
