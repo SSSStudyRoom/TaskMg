@@ -4,35 +4,61 @@
 <base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  :root{
+    --bg:#f5f7fa; --surface:#ffffff; --surface-2:#fafbfc;
+    --border:#e3e6eb; --border-strong:#c8cfd9;
+    --ink:#1a2230; --ink-2:#46505f; --sub:#8a94a3;
+    --primary:#0b6cc1; --primary-soft:#e8f1fb; --primary-strong:#0958a3;
+    --success:#16a34a; --success-soft:#ecfdf3;
+    --warn:#c2410c; --warn-soft:#fef2ea;
+    --danger:#b91c1c; --danger-soft:#fde7e7;
+    --amber:#b45309; --amber-soft:#fdf5e6;
+    /* 旧変数のエイリアス（JS内のインラインスタイル互換） */
+    --cyan:#0b6cc1; --pink:#0b6cc1; --acid:#16a34a;
+    --pinkline:#cbd5e1; --line:#e3e6eb; --panel:#ffffff; --panel2:#fafbfc;
+    --jp:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI",Meiryo,"Noto Sans JP",sans-serif;
+    --mono:var(--jp); --disp:var(--jp);
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
-  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
-  .wrap{max-width:680px;margin:0 auto;padding:0 14px 130px;position:relative;z-index:1}
-  header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14); border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
-  header::before{content:"OPS TERMINAL // APPROVAL";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--pink); opacity:.85;margin-bottom:4px;}
-  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700; color:#eafff8;text-shadow:0 0 8px rgba(0,234,255,.7)}
-  header .sub{font-family:var(--mono);font-size:12px;color:var(--sub);margin-top:4px;letter-spacing:.05em}
-  .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
-  .card::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-  .card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--pink);border-right:2px solid var(--pink)}
-  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--ink)}
-  .meta div span{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-right:5px;text-transform:uppercase}
-  h3{font-family:var(--mono);font-size:12px;margin:20px 2px 4px;color:var(--pink);letter-spacing:.16em;text-transform:uppercase;text-shadow:0 0 8px rgba(255,43,214,.5)}
-  .task{position:relative;background:var(--panel2);border:1px solid var(--line); border-left:3px solid rgba(0,234,255,.35);padding:11px;margin-top:8px; display:flex;gap:10px;align-items:flex-start}
-  .mark{font-size:18px;flex:0 0 auto;} .mark.ng{filter:drop-shadow(0 0 6px rgba(255,59,107,.6))}
-  .tname{font-size:15px;font-weight:500;color:var(--ink)} .tmemo{font-size:13px;color:var(--sub);}
-  .thumb{margin-top:8px} .thumb img{max-width:210px;display:block;border:1px solid var(--cyan);}
-  .free{white-space:pre-wrap;font-size:14px;background:rgba(4,8,18,.7); border:1px solid var(--line);padding:11px;margin-top:4px;}
-  .footer{position:fixed;bottom:0;left:0;right:0;z-index:6;padding:12px 14px; background:linear-gradient(0deg,#070a14,#0a1224);border-top:1px solid var(--cyan);}
+  html,body{margin:0;padding:0}
+  body{color:var(--ink);font-family:var(--jp);line-height:1.65;background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:15px}
+  ::selection{background:#dbe9f8;color:var(--ink)}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 140px;position:relative}
+  header{position:sticky;top:0;z-index:5;padding:12px 16px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+  header h1{margin:0;font-size:18px;font-weight:700;color:var(--ink);letter-spacing:.01em}
+  header .sub,header .date{font-size:12.5px;color:var(--sub);margin-top:3px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:8px}
+  .navbtn{display:inline-block;font-size:12px;color:var(--ink-2);text-decoration:none;border:1px solid var(--border);background:var(--surface);padding:5px 10px;border-radius:6px;cursor:pointer;transition:.12s}
+  .navbtn:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .label{font-size:12px;color:var(--sub);font-weight:500;margin-bottom:6px}
+  .empty{color:var(--sub);font-size:13px;padding:14px 2px;text-align:center}
+  input[type=text],input[type=number],textarea,select{width:100%;border:1px solid var(--border-strong);border-radius:7px;padding:10px 11px;font-size:15px;font-family:inherit;background:var(--surface);color:var(--ink);outline:none;transition:border-color .12s,box-shadow .12s}
+  input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(11,108,193,.15)}
+  input[readonly]{background:#f3f5f8;color:var(--ink-2);font-weight:500}
+  textarea{min-height:60px;line-height:1.55;resize:vertical;font-family:inherit}
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(135deg,var(--ink-2) 50%,transparent 50%);background-position:calc(100% - 18px) 53%,calc(100% - 13px) 53%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px;cursor:pointer}
+
+  .meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink)}
+  .meta div span{font-size:11.5px;color:var(--sub);margin-right:5px;font-weight:500}
+  h3{font-size:13px;margin:22px 2px 4px;color:var(--ink-2);font-weight:600}
+  .task{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:8px;padding:11px;margin-top:8px;display:flex;gap:10px;align-items:flex-start}
+  .mark{font-size:18px;flex:0 0 auto;line-height:1.4}
+  .tname{font-size:15px;font-weight:500;color:var(--ink)}
+  .tmemo{font-size:13px;color:var(--ink-2);margin-top:2px}
+  .thumb{margin-top:8px}.thumb img{max-width:210px;display:block;border:1px solid var(--border);border-radius:6px}
+  .free{white-space:pre-wrap;font-size:14px;background:var(--surface-2);border:1px solid var(--border);padding:11px;border-radius:6px;margin-top:6px;color:var(--ink-2);line-height:1.65}
+  .footer{position:fixed;bottom:0;left:0;right:0;z-index:6;padding:10px 16px;background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -2px 8px rgba(15,23,42,.05)}
   .footer .inner{max-width:680px;margin:0 auto;display:flex;gap:10px}
-  .btn{flex:1;border:0;padding:15px;font-size:15px;font-weight:700;font-family:var(--disp); cursor:pointer;}
-  .approve{background:linear-gradient(90deg,var(--acid),#7fe000);color:#04121a;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
-  .reject{background:transparent;color:#ff6f91;border:1px solid var(--danger);}
-  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
-  .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--cyan);text-decoration:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;}
+  .btn{flex:1;border:0;padding:13px;font-size:15px;font-weight:600;cursor:pointer;border-radius:8px;font-family:inherit;transition:.12s}
+  .approve{background:var(--success);color:#fff}
+  .approve:hover:not(:disabled){background:#138a3f}
+  .reject{background:var(--surface);color:var(--danger);border:1px solid var(--danger)}
+  .reject:hover:not(:disabled){background:var(--danger-soft)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -54,7 +80,12 @@ window.onload = function(){
   var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + '?page=' + page) : '#'; };
   setHref('formLink', ''); setHref('quizLink', 'quiz'); setHref('dashLink', 'dashboard');
   if(!REPORT_ID){ document.getElementById('app').innerHTML='<div style="color:red;padding:20px">IDがありません。</div>'; return; }
-  google.script.run.withSuccessHandler(render).getReport(REPORT_ID);
+  google.script.run
+    .withSuccessHandler(render)
+    .withFailureHandler(function(err){
+      document.getElementById('app').innerHTML='<div style="padding:50px 20px;color:#ff6f91;font-family:var(--mono);text-align:center;line-height:1.7"><div style="font-size:30px;margin-bottom:10px">⚠️</div><div>読み込みに失敗しました</div><div style="margin-top:14px;font-size:12px;color:var(--sub);word-break:break-all">'+(err&&err.message||String(err))+'</div></div>';
+    })
+    .getReport(REPORT_ID);
 };
 
 function render(res){
@@ -63,7 +94,7 @@ function render(res){
   var html='<div class="card"><div class="meta">'
     + '<div><span>担当</span>'+esc(r.staffName)+'</div><div><span>提出</span>'+esc(r.time)+'</div>'
     + '<div><span>完了(必須)</span>'+r.doneCount+' / '+r.total+'</div>'
-    + '<div style="color:var(--amber);font-weight:bold;text-shadow:0 0 6px rgba(255,210,61,.5)"><span>ボーナス</span>'+(r.bonusPoints||0)+' PT</div>';
+    + '<div style="color:var(--amber);font-weight:600"><span>ボーナス</span>'+(r.bonusPoints||0)+' PT</div>';
   if(r.temperature) html += '<div><span>温湿度</span>'+esc(r.temperature)+'℃ / '+esc(r.humidity)+'%</div>';
   html += '</div></div>';
 
@@ -87,10 +118,13 @@ function decide(decision){
   google.script.run.withSuccessHandler(function(res){
     if(res && res.ok){ document.getElementById('footer').style.display='none'; document.getElementById('app').innerHTML='<div style="text-align:center;padding:50px"><h2>処理完了</h2><a href="'+(WEBAPP_URL?WEBAPP_URL+'?page=dashboard':'#')+'" style="color:var(--cyan)">ダッシュボードへ戻る</a></div>'; }
     else { alert('失敗：'+res.error); document.querySelectorAll('.btn').forEach(function(b){b.disabled=false;}); }
+  }).withFailureHandler(function(err){
+    alert('通信エラー：'+(err&&err.message||String(err)));
+    document.querySelectorAll('.btn').forEach(function(b){b.disabled=false;});
   }).decideReport(REPORT_ID, decision, reason);
 }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
-<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
+
 </body>
 </html>

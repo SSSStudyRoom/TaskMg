@@ -4,22 +4,48 @@
 <base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#070a14; --panel:rgba(11,17,34,.82); --panel2:rgba(8,12,26,.92); --cyan:#00eaff; --pink:#ff2bd6; --acid:#b6ff3a; --amber:#ffd23d; --ink:#d6f3ff; --sub:#6e87a8; --line:rgba(0,234,255,.30); --pinkline:rgba(255,43,214,.45); --danger:#ff3b6b; --mono:'Share Tech Mono','Noto Sans JP',monospace; --disp:'Orbitron','Noto Sans JP',sans-serif; --jp:'Noto Sans JP',sans-serif; }
+  :root{
+    --bg:#f5f7fa; --surface:#ffffff; --surface-2:#fafbfc;
+    --border:#e3e6eb; --border-strong:#c8cfd9;
+    --ink:#1a2230; --ink-2:#46505f; --sub:#8a94a3;
+    --primary:#0b6cc1; --primary-soft:#e8f1fb; --primary-strong:#0958a3;
+    --success:#16a34a; --success-soft:#ecfdf3;
+    --warn:#c2410c; --warn-soft:#fef2ea;
+    --danger:#b91c1c; --danger-soft:#fde7e7;
+    --amber:#b45309; --amber-soft:#fdf5e6;
+    /* 旧変数のエイリアス（JS内のインラインスタイル互換） */
+    --cyan:#0b6cc1; --pink:#0b6cc1; --acid:#16a34a;
+    --pinkline:#cbd5e1; --line:#e3e6eb; --panel:#ffffff; --panel2:#fafbfc;
+    --jp:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI",Meiryo,"Noto Sans JP",sans-serif;
+    --mono:var(--jp); --disp:var(--jp);
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;color:var(--ink);font-family:var(--jp);line-height:1.6; background: radial-gradient(1200px 600px at 12% -10%,rgba(0,234,255,.12),transparent 60%), radial-gradient(1000px 600px at 115% 115%,rgba(255,43,214,.12),transparent 60%), linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px), linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px), var(--bg); background-size:auto,auto,34px 34px,34px 34px,auto;background-attachment:fixed;}
-  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999; background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px); mix-blend-mode:multiply}
-  .wrap{max-width:760px;margin:0 auto;padding:0 14px 60px;position:relative;z-index:1}
-  header{position:sticky;top:0;z-index:5;padding:16px 14px 14px; background:linear-gradient(180deg,#0a1224,#070a14); border-bottom:1px solid var(--cyan);box-shadow:0 0 22px rgba(0,234,255,.30)}
-  header::before{content:"STUDY ROOM // FIELD MANUAL";display:block; font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--cyan);opacity:.8;margin-bottom:4px}
-  header h1{margin:0;font-family:var(--disp);font-size:19px;font-weight:700;color:#eafff8; text-shadow:0 0 8px rgba(0,234,255,.7)}
-  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px}
-  .navbtn{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--pink);text-decoration:none;border:1px solid var(--pinkline);padding:5px 10px;cursor:pointer;}
-  .card{position:relative;background:var(--panel);border:1px solid var(--line); padding:15px 14px;margin-top:16px;backdrop-filter:blur(2px);box-shadow:0 0 16px rgba(0,234,255,.07)}
-  .openbtn{display:inline-block;font-family:var(--disp);font-weight:700;color:#04121a;background:linear-gradient(90deg,var(--cyan),#22b6ff);padding:12px 18px;text-decoration:none;font-size:14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
-  .docframe{width:100%;height:78vh;min-height:520px;border:1px solid var(--cyan);margin-top:14px;background:#fff;}
-  .muted{color:var(--sub);font-size:13px;font-family:var(--mono);}
+  html,body{margin:0;padding:0}
+  body{color:var(--ink);font-family:var(--jp);line-height:1.65;background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:15px}
+  ::selection{background:#dbe9f8;color:var(--ink)}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 140px;position:relative}
+  header{position:sticky;top:0;z-index:5;padding:12px 16px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+  header h1{margin:0;font-size:18px;font-weight:700;color:var(--ink);letter-spacing:.01em}
+  header .sub,header .date{font-size:12.5px;color:var(--sub);margin-top:3px}
+  .nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:8px}
+  .navbtn{display:inline-block;font-size:12px;color:var(--ink-2);text-decoration:none;border:1px solid var(--border);background:var(--surface);padding:5px 10px;border-radius:6px;cursor:pointer;transition:.12s}
+  .navbtn:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .label{font-size:12px;color:var(--sub);font-weight:500;margin-bottom:6px}
+  .empty{color:var(--sub);font-size:13px;padding:14px 2px;text-align:center}
+  input[type=text],input[type=number],textarea,select{width:100%;border:1px solid var(--border-strong);border-radius:7px;padding:10px 11px;font-size:15px;font-family:inherit;background:var(--surface);color:var(--ink);outline:none;transition:border-color .12s,box-shadow .12s}
+  input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(11,108,193,.15)}
+  input[readonly]{background:#f3f5f8;color:var(--ink-2);font-weight:500}
+  textarea{min-height:60px;line-height:1.55;resize:vertical;font-family:inherit}
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(135deg,var(--ink-2) 50%,transparent 50%);background-position:calc(100% - 18px) 53%,calc(100% - 13px) 53%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px;cursor:pointer}
+
+  .openbtn{display:inline-block;font-weight:600;color:#fff;background:var(--primary);padding:11px 18px;text-decoration:none;font-size:14px;border-radius:8px;transition:.12s}
+  .openbtn:hover{background:var(--primary-strong);text-decoration:none}
+  .docframe{width:100%;height:78vh;min-height:520px;border:1px solid var(--border);border-radius:8px;margin-top:14px;background:#fff}
+  .muted{color:var(--sub);font-size:13px}
 </style>
 </head>
 <body>
@@ -46,6 +72,6 @@
   var setHref = function(id, page){ var el = document.getElementById(id); if (el) el.href = base ? (base + (page ? '?page=' + page : '')) : '#'; };
   setHref('formLink', ''); setHref('quizLink', 'quiz'); setHref('dashboardLink', 'dashboard'); setHref('visitsLink', 'visits');
 </script>
-<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }</script>
+
 </body>
 </html>

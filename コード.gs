@@ -24,7 +24,7 @@ function tz_() { return book_().getSpreadsheetTimeZone() || 'Asia/Tokyo'; }
 
 function doGet(e) {
   const page = (e && e.parameter && e.parameter.page) || 'form';
-  const webappUrl = prop_('WEBAPP_URL');
+  const webappUrl = currentWebAppUrl_();
 
   if (page === 'review') {
     const t = HtmlService.createTemplateFromFile('review');
@@ -65,6 +65,13 @@ function doGet(e) {
   
 }
 
+/** 公開URLを返す。スクリプトプロパティ WEBAPP_URL が空なら、現行デプロイのURLを自動取得。 */
+function currentWebAppUrl_() {
+  const stored = prop_('WEBAPP_URL');
+  if (stored) return stored;
+  try { return ScriptApp.getService().getUrl() || ''; } catch (e) { return ''; }
+}
+
 function getInitialData() {
   const email = (Session.getActiveUser().getEmail() || '').toLowerCase();
   const staff = findStaffByEmail_(email);
@@ -94,6 +101,7 @@ function findStaffByEmail_(email) {
 
 function getTasks(shift) {
   const sh = sheet_(SH_TASK);
+  if (!sh) return [];
   const rows = sh.getDataRange().getDisplayValues();
   const list = [];
   for (let i = 1; i < rows.length; i++) {
@@ -104,8 +112,8 @@ function getTasks(shift) {
       photoReq: r[4] === true || String(r[4]).toUpperCase() === 'TRUE',
       envInput: r[5] === true || String(r[5]).toUpperCase() === 'TRUE',
       order: Number(r[6]) || 0,
-      manualText: String(r[7] || '').trim(), // マニュアル追加
-      type: String(r[8] || '').trim() === '任意' ? 'opt' : 'req' // 任意ボーナス追加
+      manualText: String(r[7] || '').trim(),
+      type: String(r[8] || '').trim() === '任意' ? 'opt' : 'req'
     });
   }
   list.sort(function (a, b) { return a.order - b.order; });
@@ -140,8 +148,16 @@ function addNotice(payload) {
 function getNotices(staffId) {
   const sh = sheet_(SH_NOTICE); if (!sh) return [];
   const rows = sh.getDataRange().getDisplayValues(); const list = [];
-  for (let i = rows.length - 1; i >= 1; i--) {
+  // 直近30日かつ最大50件まで（パフォーマンス劣化防止）
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  for (let i = rows.length - 1; i >= 1 && list.length < 50; i--) {
     const id = rows[i][0]; if (!id) continue;
+    const dateStr = String(rows[i][1] || '').trim();
+    const m = dateStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m) {
+      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      if (d < cutoff) continue;
+    }
     const readers = (rows[i][5] || '').split(',').map(function(s) { return s.trim(); });
     list.push({
       id: id, date: rows[i][1], author: rows[i][2], title: rows[i][3], content: rows[i][4],
@@ -154,16 +170,14 @@ function getNotices(staffId) {
 
 // -----------------------------------------------------
 // 外部フロントエンド用 APIエンドポイント (doPost)
+//   ※ Option A（GAS配信）では使われませんが、将来用に残してあります
 // -----------------------------------------------------
 function doPost(e) {
   try {
-    // CORS回避のために text/plain で送られてくる想定でパース
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
     const payload = data.payload || {};
     let result = {};
-
-    // アクション名に応じて既存の関数をルーティング
     switch (action) {
       case 'getInitialData': result = getInitialData(); break;
       case 'getTasks': result = getTasks(payload.shift); break;
@@ -182,13 +196,9 @@ function doPost(e) {
       case 'getStudentList': result = getStudentList(); break;
       default: result = { ok: false, error: 'Unknown action: ' + action };
     }
-
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -225,7 +235,7 @@ function submitReport(payload) {
     tasks.forEach(function (t) {
       if (t.type === 'req') totalReq++;
       if (t.done && t.type === 'req') doneCount++;
-      if (t.done && t.type === 'opt') bonusPoints++; // ボーナス加算
+      if (t.done && t.type === 'opt') bonusPoints++;
 
       let url = '';
       if (t.photo && t.photo.data) {
@@ -264,28 +274,35 @@ function savePhoto_(photo, reportId, taskName) {
 }
 
 function notifyNewReport_(r) {
-  const webappUrl = prop_('WEBAPP_URL');
+  const webappUrl = currentWebAppUrl_();
   const reviewUrl = webappUrl ? webappUrl + '?page=review&id=' + encodeURIComponent(r.reportId) : '';
-  const envBad = (r.temperature || r.humidity) && !envStatus_(r.temperature, r.humidity).ok;
 
   const taskHtml = (r.tasks || []).map(function (t) {
-    const mark = t.done ? '✅' : (t.type==='opt' ? '➖' : '⛔️ 未完了');
-    const optBadge = t.type==='opt' ? ' [任意]' : '';
+    const mark = t.done ? '✅' : (t.type === 'opt' ? '➖' : '⛔️ 未完了');
+    const optBadge = t.type === 'opt' ? ' [任意]' : '';
     const cam = t.photo && t.photo.data ? ' 📷' : (t.photoReq ? '（写真なし）' : '');
     return '<li>' + mark + ' ' + escHtml_(t.name) + optBadge + cam + (t.memo ? '（' + escHtml_(t.memo) + '）' : '') + '</li>';
   }).join('');
 
-  let html = '<div style="font-family:sans-serif;max-width:560px;line-height:1.6">'
+  const linkBlock = reviewUrl
+    ? '<p style="margin:18px 0 6px">' + btnLink_(reviewUrl, '✅ 承認画面を開く', '#1e8e3e') + '</p>'
+      + '<p style="margin:0;font-size:12px;color:#888">ボタンが開けないときは、このURLを開いてください：<br><a href="' + reviewUrl + '">' + reviewUrl + '</a></p>'
+    : '<p style="margin:18px 0;color:#c0392b">承認画面のリンクを表示できません。スクリプトプロパティ <b>WEBAPP_URL</b> に公開URL（末尾 /exec）を設定してください。</p>';
+
+  const html = '<div style="font-family:sans-serif;max-width:560px;line-height:1.6">'
     + '<h2 style="margin:0 0 6px">業務報告の承認依頼</h2>'
-    + '<p style="margin:0 0 4px">提出 ' + r.time + '　完了 ' + r.doneCount + ' / ' + r.total + ' (獲得ボーナス: ' + r.bonusPoints + 'PT)</p>'
-    + '<ul style="margin:8px 0;padding-left:20px">' + taskHtml + '</ul></div>';
+    + '<p style="margin:0 0 4px">' + escHtml_(r.date) + '　' + escHtml_(r.shift) + 'の部 / ' + escHtml_(r.staffName || '') + '</p>'
+    + '<p style="margin:0 0 4px">提出 ' + escHtml_(r.time) + '　完了 ' + r.doneCount + ' / ' + r.total + '（ボーナス ' + r.bonusPoints + 'PT）</p>'
+    + '<ul style="margin:8px 0;padding-left:20px">' + taskHtml + '</ul>'
+    + linkBlock
+    + '</div>';
 
   sendMail_(approverEmails_(), '【承認依頼】' + r.date + ' ' + r.shift + 'の部 / ' + (r.staffName || ''), html);
 
   if (prop_('CHAT_WEBHOOK_URL')) {
     const lines = (r.tasks || []).map(function (t) {
-      const mark = t.done ? '✅' : (t.type==='opt' ? '➖' : '⛔️');
-      return mark + ' ' + t.name + (t.type==='opt' ? '[任意]' : '') + (t.memo ? '（' + t.memo + '）' : '');
+      const mark = t.done ? '✅' : (t.type === 'opt' ? '➖' : '⛔️');
+      return mark + ' ' + t.name + (t.type === 'opt' ? '[任意]' : '') + (t.memo ? '（' + t.memo + '）' : '');
     }).join('\n');
     postChat_({
       text: '【業務報告】' + r.date + ' ' + r.shift + 'の部\n👤 ' + (r.staffName || '') + '\n⏰ 提出 ' + r.time + '　✔ ' + r.doneCount + '/' + r.total + ' 完了 (🌟ボーナス: ' + r.bonusPoints + 'PT)\n──────────\n' + lines,
@@ -342,7 +359,6 @@ function getReport(reportId) {
   }
   const me = (Session.getActiveUser().getEmail() || '').toLowerCase();
   header.canApprove = isApprover_(me); header.viewer = me; header.tasks = tasks;
-  header.attendance = attendanceLookup_(String(header.date), String(header.shift), String(header.staffId), String(header.staffName));
   header.env = envStatus_(header.temperature, header.humidity);
   return { ok: true, report: header };
 }
@@ -361,12 +377,19 @@ function decideReport(reportId, decision, reason) {
     for (let i = 1; i < rows.length; i++) { if (String(rows[i][0]).trim() === reportId) { rowIndex = i + 1; break; } }
     if (rowIndex < 0) return { ok: false, error: '報告が見つかりません' };
 
+    // すでに他の承認者が処理済みなら二重処理しない（どちらか1人で確定）
+    const current = String(rows[rowIndex - 1][12]).trim();
+    if (current === '承認済み' || current === '差し戻し') {
+      const who = String(rows[rowIndex - 1][13] || '').trim();
+      return { ok: false, error: 'この報告は既に「' + current + '」で処理済みです' + (who ? '（担当：' + who + '）' : '') };
+    }
+
     const statusText = decision === 'approve' ? '承認済み' : '差し戻し';
     const nowStr = Utilities.formatDate(new Date(), tz_(), 'yyyy/MM/dd HH:mm');
     sh.getRange(rowIndex, 13).setValue(statusText); sh.getRange(rowIndex, 14).setValue(me);
     sh.getRange(rowIndex, 15).setValue(nowStr); sh.getRange(rowIndex, 16).setValue(decision === 'approve' ? '' : (reason || ''));
 
-    const staffEmail = getStaffEmail_(rows[rowIndex-1][3], rows[rowIndex-1][4]);
+    const staffEmail = getStaffEmail_(rows[rowIndex - 1][3], rows[rowIndex - 1][4]);
     if (staffEmail) sendMail_(staffEmail, '【業務報告】' + (decision === 'approve' ? '承認' : '差し戻し'), '<p>承認者：' + me + '</p>');
     return { ok: true, status: statusText };
   } catch (err) { return { ok: false, error: String(err) }; } finally { lock.releaseLock(); }
@@ -380,7 +403,7 @@ function setup() {
   ensureSheet_(ss, SH_RESULT, ['報告ID', '日付', '部', '業務名', 'カテゴリ', '完了', '写真URL', '備考']);
   ensureSheet_(ss, SH_ATTEND, ['日付', '部', 'スタッフID', '氏名', '出勤時刻', '予定時刻', '状態', '遅刻（分）', '遅刻理由', '通知済']);
   ensureSheet_(ss, SH_NOTICE, ['お知らせID', '日時', '投稿者', 'タイトル', '内容', '既読スタッフID', '画像URL']);
-  ensureSheet_(ss, SH_QUEUE, ['リクエストID', '日時', '生徒ID', '生徒名', '質問科目・内容', 'ステータス', '対応スタッフ']); // ←これを追加
+  ensureSheet_(ss, SH_QUEUE, ['リクエストID', '日時', '生徒ID', '生徒名', '質問科目・内容', 'ステータス', '対応スタッフ']);
 }
 
 function ensureSheet_(ss, name, header) {
@@ -428,10 +451,35 @@ function getAttendanceStatus(shift, staffId, staffName) {
   } return null;
 }
 
+/** スタッフ別ボーナスポイント集計（管理者ダッシュボード専用） */
+function getStaffBonusStats_() {
+  const sh = sheet_(SH_REPORT);
+  if (!sh) return { month: [], today: [], monthLabel: '' };
+  const rows = sh.getDataRange().getDisplayValues();
+  const ym = Utilities.formatDate(new Date(), tz_(), 'yyyy/MM');
+  const today = todayStr_();
+  const monthMap = {}, todayMap = {};
+  for (let i = 1; i < rows.length; i++) {
+    const date = String(rows[i][1] || '').trim();
+    const name = String(rows[i][4] || '').trim();
+    const bp = Number(rows[i][16]) || 0;
+    if (!name) continue;
+    if (date.indexOf(ym) === 0) { monthMap[name] = (monthMap[name] || 0) + bp; }
+    if (date === today) { todayMap[name] = (todayMap[name] || 0) + bp; }
+  }
+  const toList = function(m) {
+    return Object.keys(m).map(function(k){ return { staffName: k, points: m[k] }; })
+      .sort(function(a, b){ return b.points - a.points; });
+  };
+  return { month: toList(monthMap), today: toList(todayMap), monthLabel: ym };
+}
+
 function getDashboardData() {
   const me = (Session.getActiveUser().getEmail() || '').toLowerCase();
   if (!isApprover_(me)) return { ok: false, error: 'このページは代表（承認者）専用です。' };
-  const dateStr = todayStr_(), rep = sheet_(SH_REPORT).getDataRange().getDisplayValues(), reportsToday = [], pending = [];
+  const repSh = sheet_(SH_REPORT);
+  if (!repSh) return { ok: false, error: '日報シートが見つかりません。setup()を実行してください。' };
+  const dateStr = todayStr_(), rep = repSh.getDataRange().getDisplayValues(), reportsToday = [], pending = [];
   for (let i = 1; i < rep.length; i++) {
     const item = { reportId: rep[i][0], date: rep[i][1], shift: rep[i][2], staffName: rep[i][4], time: rep[i][5], doneCount: rep[i][6], total: rep[i][7], temperature: rep[i][8], humidity: rep[i][9], status: rep[i][12] };
     if (String(rep[i][1]) === dateStr) reportsToday.push(item);
@@ -442,7 +490,15 @@ function getDashboardData() {
   for (let i = 1; i < att.length; i++) {
     if (String(att[i][0]) === dateStr) attendToday.push({ shift: att[i][1], staffName: att[i][3], actual: att[i][4], scheduled: att[i][5], state: att[i][6], minutesLate: att[i][7] === '' ? 0 : Number(att[i][7]), reason: att[i][8] });
   }
-  return { ok: true, viewer: me, today: Utilities.formatDate(new Date(), tz_(), 'yyyy/MM/dd (E)'), webappUrl: prop_('WEBAPP_URL'), reportsToday: reportsToday, pending: pending.slice(0, 30), attendToday: attendToday };
+  return {
+    ok: true, viewer: me,
+    today: Utilities.formatDate(new Date(), tz_(), 'yyyy/MM/dd (E)'),
+    webappUrl: currentWebAppUrl_(),
+    reportsToday: reportsToday,
+    pending: pending.slice(0, 30),
+    attendToday: attendToday,
+    staffBonusStats: getStaffBonusStats_()
+  };
 }
 
 // -----------------------------------------------------
@@ -481,50 +537,39 @@ function getQuizData() {
     
     const range = sh.getDataRange();
     const data = range.getValues();
-    const richTexts = range.getRichTextValues(); // リッチテキスト（挿入したリンク）を取得
-    const formulas = range.getFormulas(); // HYPERLINK関数を取得
+    const richTexts = range.getRichTextValues();
+    const formulas = range.getFormulas();
     
     if (data.length < 2) return { ok: false, error: 'データがありません' };
     
-    // B2〜AE2 (index 1の 1列目〜) に番号が割り振られていると想定
     const numbersRow = data[1] || [];
     const books = [];
     
-    // A3 (index 2) 以降のデータをループ処理
     for (let i = 2; i < data.length; i++) {
       const bookName = data[i][0];
-      if (!bookName) continue; // 参考書名が空欄の場合はスキップ
+      if (!bookName) continue;
       
       const links = [];
-      // B列 (index 1) 〜 AE列のリンクをチェック
       for (let j = 1; j < data[i].length; j++) {
         const cellValue = String(data[i][j]).trim();
         const richTextUrl = richTexts[i][j].getLinkUrl();
         const formula = formulas[i][j];
         
         let url = '';
-        
-        // パターン1: セルに「挿入 > リンク」で設定された場合
         if (richTextUrl && richTextUrl.indexOf('http') === 0) {
           url = richTextUrl;
-        } 
-        // パターン2: HYPERLINK関数が使われている場合
-        else if (formula && formula.match(/hyperlink\("([^"]+)"/i)) {
+        } else if (formula && formula.match(/hyperlink\("([^"]+)"/i)) {
           url = formula.match(/hyperlink\("([^"]+)"/i)[1];
-        } 
-        // パターン3: URLがそのままベタ打ちされている場合
-        else if (cellValue.indexOf('http') === 0) {
+        } else if (cellValue.indexOf('http') === 0) {
           url = cellValue;
         }
         
-        // リンクが見つかった場合のみリストに追加
         if (url) {
-          const num = numbersRow[j] || j; // ヘッダーの番号がなければ列番号を使用
+          const num = numbersRow[j] || j;
           links.push({ number: num, url: url });
         }
       }
       
-      // リンクが1つ以上ある参考書だけをリストに追加
       if (links.length > 0) {
         books.push({ name: bookName, links: links });
       }
@@ -556,7 +601,6 @@ function addHelpRequest(payload) {
       '待ち', ''
     ]);
     
-    // Chat連携があれば通知
     if (prop_('CHAT_WEBHOOK_URL')) {
       postChat_({ text: '🚨【質問リクエスト】生徒から質問待ちが入りました！\n👤 ' + (payload.studentName) + '\n📝 内容: ' + (payload.topic) });
     }
@@ -572,7 +616,6 @@ function getActiveQueue() {
   const sh = sheet_(SH_QUEUE); if (!sh) return [];
   const rows = sh.getDataRange().getDisplayValues();
   const queue = [];
-  // 古いものから順に表示したいので上からループ
   for (let i = 1; i < rows.length; i++) {
     const status = rows[i][5];
     if (status === '待ち' || status === '対応中') {
@@ -613,7 +656,6 @@ function getStudentList() {
     const ss = SpreadsheetApp.openById('1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps');
     let sh = null;
     
-    // gid=1030179692 のシートを特定
     const sheets = ss.getSheets();
     for (let i = 0; i < sheets.length; i++) {
       if (sheets[i].getSheetId() === 1030179692) {
@@ -627,10 +669,9 @@ function getStudentList() {
     const data = sh.getDataRange().getDisplayValues();
     const students = [];
     
-    // 1行目はヘッダーとみなし、2行目からループ処理
     for (let i = 1; i < data.length; i++) {
-      const id = String(data[i][0]).trim();   // A列: 学習者ID
-      const name = String(data[i][3]).trim(); // B列: 氏名 (※氏名がC列の場合は data[i][2] に変更してください)
+      const id = String(data[i][0]).trim();
+      const name = String(data[i][3]).trim();
       
       if (id) {
         students.push({ id: id, name: name || '名前未登録' });
